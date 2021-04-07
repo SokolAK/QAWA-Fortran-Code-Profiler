@@ -6,12 +6,11 @@ from ordered_set import OrderedSet
 import re
 
 class Subroutine_wrapper():
-	def __init__(self, SCRIPT_DIR='', SOURCE_DIR='', FILES=[], SUBROUTINES=[], FUNCTIONS=[]):
+	def __init__(self, SCRIPT_DIR='', SOURCE_DIR='', FILES=[], SUBROUTINES=[]):
 		self.SOURCE_DIR = SOURCE_DIR
 		self.SCRIPT_DIR = SCRIPT_DIR
 		self.FILES = FILES
 		self.SUBROUTINES = SUBROUTINES
-		self.FUNCTIONS = FUNCTIONS
 
 	def add_line(self, lines, i, str):
 		lines.insert(i, str + '\n')
@@ -111,10 +110,6 @@ f"""{get_wrapper_header()}
 	def is_wrapper(self, line):
 		return line.strip() == get_wrapper_header()
 
-	def get_subroutine_from_line(self, line):
-		line.find()
-		#return line[len('subroutine'):line.find('(')].strip()
-
 	def is_wrapped_subroutine(self, subroutine):
 		return subroutine.startswith(get_prefix())
 
@@ -157,17 +152,42 @@ f"""{get_wrapper_header()}
 				f.write(line)	
 
 
+	def modify_stops(self):
+		files = []
+		for (dirpath, dirnames, filenames) in os.walk(self.SOURCE_DIR):
+			files += [os.path.join(dirpath, file).replace(self.SOURCE_DIR,'') for file in filenames]
+		files = set([file for file in files if file.endswith('.f') or file.endswith('.f90')])
+
+		for file in files:
+			lines = []
+			with open(f"{self.SOURCE_DIR}/{file}", 'r') as f:
+				lines = f.readlines()
+
+			for i,line in enumerate(lines):
+				line = line.lower()
+				if line.lstrip().startswith('stop'):
+
+					lines[i] = line.replace(line[line.index('stop'):], 'return\n')
+
+					while lines[i].strip().endswith('&') or \
+						lines[i+1].strip().startswith('$') or lines[i+1].strip().startswith('&'):
+						lines[i+1] = ''
+						i += 1
+
+			self.save_file(file, lines)
+
+						
+
 	def modify_ends(self, lines, subroutines):
-		i = 0
-		while i < len(lines):
-			if 'end subroutine' in lines[i].lower():
-				words = lines[i].strip().split()
+		for i, line in enumerate(lines):
+			if 'end subroutine' in line.lower():
+				words = line.strip().split()
 				if len(words) == 3:
-					name = lines[i].strip().split()[2]
+					name = line.strip().split()[2]
 					for subroutine in subroutines:
 						if subroutine.name.lower() == name.lower():
-							lines[i] = lines[i].replace(name, f"{get_prefix()}{name}")
-			i += 1
+							lines[i] = line.replace(name, f"{get_prefix()}{name}")
+
 
 	def wrap_subroutine(self, lines, subroutine):
 		self.make_copy(subroutine.file)
@@ -176,7 +196,6 @@ f"""{get_wrapper_header()}
 		while not (lines[i].strip().lower().startswith('subroutine') and \
 				subroutine.name == self.get_subroutine_name_from_line(lines[i])):
 			i += 1
-		
 		
 		lines[i] = lines[i].replace(subroutine.name, f"{get_prefix()}{subroutine.name}")
 		line = lines[i]
@@ -243,8 +262,10 @@ f"""{get_wrapper_header()}
 								lines[i].strip().startswith('$') or \
 								lines[i].strip().startswith('&') or \
 								lines[i-1].strip().endswith('&'):
-							declarations_lines.append(lines[i])
+
 							end_of_declarations = False
+							if not self.is_comment(file, lines[i]):	
+								declarations_lines.append(lines[i])
 							#print(True)
 							break
 					i += 1
@@ -272,5 +293,7 @@ f"""{get_wrapper_header()}
 			self.modify_ends(lines, subroutines)
 
 			self.save_file(file,lines)
+
+		self.modify_stops()
 
 
