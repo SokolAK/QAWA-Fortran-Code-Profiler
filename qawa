@@ -1,0 +1,3 @@
+#!/bin/bash
+
+python ~/QCHEM/PROFILING/QAWA/qawa.py $1 $2
