@@ -1,15 +1,17 @@
 import sys, os
 from qawa_subroutine_wrapper import Subroutine_wrapper
-import qawa_unwrap
+from qawa_main_wrapper import Main_wrapper
 from qawa_report import Report_generator
 from qawa_strings import print_banner
+from qawa_utils import *
 print_banner()
 
 # USER SETTINGS
 ########################################################################
-MAKEFILE = '/home/adam.sokol/QCHEM/GAMMCOR_GitLab/Makefile'
-MAIN_FILE = '/home/adam.sokol/QCHEM/GAMMCOR_GitLab/SOURCE/mainp.f'
-SOURCE_DIR = '/home/adam.sokol/QCHEM/GAMMCOR_GitLab/SOURCE/'
+PROJECT_DIR = '/home/adam.sokol/QCHEM/GAMMCOR_GitLab/'
+MAKEFILE = PROJECT_DIR + 'Makefile'
+SOURCE_DIR = PROJECT_DIR + 'SOURCE/'
+MAIN_FILE = SOURCE_DIR + 'mainp.f'
 FILES = ['*', '-sorter.f90', '-tran.f90', '-timing.f90']
 #FILES = ['misc.f']
 SUBROUTINES = ['*', '-ints_modify']
@@ -27,20 +29,25 @@ List of commands:
     build           -- wrap + make
     unwrap          -- remove profiling wrappers from all files in SOURCE_DIR (qawa.py)
     restore         -- unwrap + make
+    rebuild         -- unwrap + wrap + make
     report <out>    -- generate reports based on the given <out> file
     """)
 
 def wrap():
     print("[QAWA] Wrapping...")
-    wrapper = Subroutine_wrapper(SCRIPT_DIR=SCRIPT_DIR, 
+    sub_wrapper = Subroutine_wrapper(SCRIPT_DIR=SCRIPT_DIR, 
         SOURCE_DIR=SOURCE_DIR,
         FILES=FILES,
         SUBROUTINES=SUBROUTINES)
-    wrapper.wrap()
+    sub_wrapper.wrap()
+
+    main_wrapper = Main_wrapper(SCRIPT_DIR, MAIN_FILE)
+    main_wrapper.wrap()
+
 
 def unwrap():
     print("[QAWA] Unwrapping...")
-    qawa_unwrap.unwrap(SOURCE_DIR)
+    unwrap_dir(SOURCE_DIR)
 
 def make(clean=False):
     print("[QAWA] Building executable...")
@@ -52,6 +59,10 @@ def make(clean=False):
 def build():
     wrap()
     make()
+
+def rebuild():
+    unwrap()
+    build()
 
 def restore():
     unwrap()
@@ -75,6 +86,7 @@ else:
         'unwrap': unwrap,
         'build': build,
         'make': make,
+        'rebuild': rebuild,
         'restore': restore,
         'report': generate_report
     }

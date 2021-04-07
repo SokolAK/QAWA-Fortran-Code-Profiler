@@ -1,16 +1,28 @@
 import os
 from qawa_strings import *
-from shutil import copy
-from subroutine import Subroutine
 from ordered_set import OrderedSet
+from qawa_utils import *
 import re
 
 class Subroutine_wrapper():
-	def __init__(self, SCRIPT_DIR='', SOURCE_DIR='', FILES=[], SUBROUTINES=[]):
+	def __init__(self, SCRIPT_DIR, SOURCE_DIR, FILES, SUBROUTINES):
 		self.SOURCE_DIR = SOURCE_DIR
 		self.SCRIPT_DIR = SCRIPT_DIR
 		self.FILES = FILES
 		self.SUBROUTINES = SUBROUTINES
+
+	class Subroutine():
+		def __init__(self, file, name, signature, signature_lines, args, declarations_lines):
+			self.file = file
+			self.name = name
+			self.signature = signature
+			self.signature_lines = signature_lines
+			self.args = args
+			self.declarations_lines = declarations_lines
+
+		def __str__(self):
+			return f"{self.file:20s} {self.name:20s}"
+
 
 	def add_line(self, lines, i, str):
 		lines.insert(i, str + '\n')
@@ -21,12 +33,6 @@ class Subroutine_wrapper():
 			i = self.add_line(lines, i, line)
 		return i
 
-	def make_copy(self, file):
-		org_name = f"{self.SOURCE_DIR}/{file}"
-		copy_name = f"{org_name}.qawa_copy"
-		if not os.path.isfile(copy_name):
-			copy(org_name, copy_name)
-
 	def prepare_subroutine_wrapper(self, subroutine):
 		wrapper_body = \
 f"""{get_wrapper_header()}
@@ -34,14 +40,15 @@ f"""{get_wrapper_header()}
       use omp_lib
 {subroutine.declarations_lines}
       real :: start, end
-      real ( kind = 8 ) ::  wtime, wtime2
+      real ( kind = 8 ) :: wtime, wtime2
       wtime = omp_get_wtime()
       call cpu_time(start)
 
       !$OMP CRITICAL
       open(61,file='{self.SCRIPT_DIR}/qawa.out',
      $action='write',position='append')
-      write(61,*) '-> {subroutine.file} {subroutine.name}',
+      write(61,'(A,I2,A2,I2)')
+     $'-> {subroutine.file} {subroutine.name}',
      $OMP_GET_THREAD_NUM()+1, '/', OMP_GET_NUM_THREADS()
       close(61)
       !$OMP END CRITICAL
@@ -53,7 +60,8 @@ f"""{get_wrapper_header()}
       !$OMP CRITICAL
       open(61,file='{self.SCRIPT_DIR}/qawa.out',
      $action='write',position='append')
-      write(61,*) '<- {subroutine.file} {subroutine.name}',
+      write(61,'(A,2F14.6)')
+     $'<- {subroutine.file} {subroutine.name}',
      $end-start, wtime2-wtime
       close(61)
       !$OMP END CRITICAL
@@ -62,19 +70,11 @@ f"""{get_wrapper_header()}
 {get_wrapper_footer()}
 
 """
-		if subroutine.file.lower().rstrip().endswith('.f'):
-			return wrapper_body
 
 		if subroutine.file.lower().rstrip().endswith('.f90'):
-			wrapper_lines = [line.lstrip() for line in wrapper_body.split('\n')]
-			for i, line in enumerate(wrapper_lines):
-				line = line.lstrip() 
-				if line.startswith('$') or line.startswith('&'):
-					wrapper_lines[i] = line[1:]
-					wrapper_lines[i-1] = f"{wrapper_lines[i-1]}&"
-
-			wrapper_body = '\n'.join(wrapper_lines)
-			return wrapper_body
+			wrapper_body = convert_text_block_from_f77_to_f90(wrapper_body)
+		
+		return wrapper_body
 		
 
 	def prepare_file_list(self):
@@ -87,22 +87,6 @@ f"""{get_wrapper_header()}
 		files = [f for f in files if f"-{f}" not in self.FILES]
 		print(f"FILES: {files}")
 		return files
-
-
-	def is_comment(self, file, line):
-		if not line.strip():
-			return True
-
-		if file.strip().endswith('.f'):
-			first_char = line.lower()[0]
-			return first_char == 'c' or first_char == 'd' or first_char == '*' or first_char == '!'
-
-		if file.strip().endswith('.f90'):
-			first_char = line.strip().lower()[0]
-			return first_char == '!'
-
-		return False
-
 
 	def is_subroutine_start(self, line):
 		return line.lower().startswith('subroutine')
@@ -122,7 +106,7 @@ f"""{get_wrapper_header()}
 
 	def should_wrap(self, file, lines, i):
 		line = lines[i].strip()
-		return not self.is_comment(file, line) and \
+		return not is_comment(file, line) and \
 			self.is_subroutine_start(line) and \
 			(self.get_subroutine_name_from_line(line) in self.SUBROUTINES or \
 				('*' in self.SUBROUTINES and f"-{self.get_subroutine_name_from_line(line)}" not in self.SUBROUTINES)) and \
@@ -190,7 +174,7 @@ f"""{get_wrapper_header()}
 
 
 	def wrap_subroutine(self, lines, subroutine):
-		self.make_copy(subroutine.file)
+		prepare_file(f"{self.SOURCE_DIR}/{subroutine.file}")
 		i = 0
 
 		while not (lines[i].strip().lower().startswith('subroutine') and \
@@ -248,30 +232,33 @@ f"""{get_wrapper_header()}
 
 				i += 1
 				declarations_lines = []
-				key_words = ['use','include','data','implicit','character','real','double','integer','dimension','logical','complex','parameter','type']
+				key_words = get_declaration_key_words()
 				end_of_declarations = False
-				while not end_of_declarations:
-					#print(lines[i])
-					end_of_declarations = True
-					for key_word in key_words:
-						#print(key_word)
-						#if re.search(rf"\b{key_word}\b", lines[i].lower().replace(',',' ').replace('(',' ').replace(')',' ')) or \
-						if lines[i].strip().lower().startswith(key_word) or \
-								lines[i].strip() == '' or \
-								self.is_comment(file, lines[i]) or \
-								lines[i].strip().startswith('$') or \
-								lines[i].strip().startswith('&') or \
-								lines[i-1].strip().endswith('&'):
+				while is_declaration(file,lines,i):
+					if not is_comment(file, lines[i]):	
+						declarations_lines.append(lines[i])
 
-							end_of_declarations = False
-							if not self.is_comment(file, lines[i]):	
-								declarations_lines.append(lines[i])
-							#print(True)
-							break
+					# #print(lines[i])
+					# end_of_declarations = True
+					# for key_word in key_words:
+					# 	#print(key_word)
+					# 	#if re.search(rf"\b{key_word}\b", lines[i].lower().replace(',',' ').replace('(',' ').replace(')',' ')) or \
+					# 	if lines[i].strip().lower().startswith(key_word) or \
+					# 			not lines[i].strip() or \
+					# 			is_comment(file, lines[i]) or \
+					# 			lines[i].strip().startswith('$') or \
+					# 			lines[i].strip().startswith('&') or \
+					# 			lines[i-1].strip().endswith('&'):
+
+					# 		end_of_declarations = False
+					# 		if not is_comment(file, lines[i]):	
+					# 			declarations_lines.append(lines[i])
+					# 		#print(True)
+					# 		break
 					i += 1
 
 				declarations_lines = ''.join(declarations_lines)
-				subroutines.append(Subroutine(file,name,signature,signature_lines,args,declarations_lines))
+				subroutines.append(self.Subroutine(file,name,signature,signature_lines,args,declarations_lines))
 			i += 1
 		return subroutines
 
