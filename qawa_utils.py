@@ -78,3 +78,7 @@ def prepare_file(filename):
     if does_file_exist(copy_name):
         unwrap_file(copy_name)
     make_copy(filename)
+
+
+def get_separator(symbol, length):
+    return ''.join([symbol]*length)
