@@ -66,7 +66,8 @@ f"""{get_wrapper_header()}
       close(61)
       !$OMP END CRITICAL
 
-      END
+      return
+      end
 {get_wrapper_footer()}
 
 """
@@ -208,9 +209,6 @@ f"""{get_wrapper_header()}
 		while i < len(lines):
 			line = lines[i]
 			if self.should_wrap(file, lines, i):
-				# line = line.strip()
-				# name = line[:line.find('(')]
-				# name = name.split()[-1]
 				name = self.get_subroutine_name_from_line(line)
 
 				signature_lines = []
@@ -237,24 +235,6 @@ f"""{get_wrapper_header()}
 				while is_declaration(file,lines,i):
 					if not is_comment(file, lines[i]):	
 						declarations_lines.append(lines[i])
-
-					# #print(lines[i])
-					# end_of_declarations = True
-					# for key_word in key_words:
-					# 	#print(key_word)
-					# 	#if re.search(rf"\b{key_word}\b", lines[i].lower().replace(',',' ').replace('(',' ').replace(')',' ')) or \
-					# 	if lines[i].strip().lower().startswith(key_word) or \
-					# 			not lines[i].strip() or \
-					# 			is_comment(file, lines[i]) or \
-					# 			lines[i].strip().startswith('$') or \
-					# 			lines[i].strip().startswith('&') or \
-					# 			lines[i-1].strip().endswith('&'):
-
-					# 		end_of_declarations = False
-					# 		if not is_comment(file, lines[i]):	
-					# 			declarations_lines.append(lines[i])
-					# 		#print(True)
-					# 		break
 					i += 1
 
 				declarations_lines = ''.join(declarations_lines)

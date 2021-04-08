@@ -2,9 +2,9 @@ import sys, os
 from qawa_subroutine_wrapper import Subroutine_wrapper
 from qawa_main_wrapper import Main_wrapper
 from qawa_report import Report_generator
-from qawa_strings import print_banner
+from qawa_strings import get_banner
 from qawa_utils import *
-print_banner()
+print(get_banner())
 
 # USER SETTINGS
 ########################################################################

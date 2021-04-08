@@ -1,10 +1,10 @@
-def print_banner():
-	print(f"""~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+def get_banner():
+	return f"""~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
      )))    QAWA* Fortran  
     C\\_/    Code Profiler 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 *Quasi-Aspect-Weaving Approach
-""")
+"""
 
 def get_wrapper_header():
 	return '!start qawa wrapper ##########################################'
