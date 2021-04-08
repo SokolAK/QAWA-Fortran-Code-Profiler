@@ -5,11 +5,12 @@ from qawa_utils import *
 import re
 
 class Subroutine_wrapper():
-	def __init__(self, SCRIPT_DIR, SOURCE_DIR, FILES, SUBROUTINES):
+	def __init__(self, SCRIPT_DIR, SOURCE_DIR, OUT_FILE, FILES, SUBROUTINES):
 		self.SOURCE_DIR = SOURCE_DIR
 		self.SCRIPT_DIR = SCRIPT_DIR
 		self.FILES = FILES
 		self.SUBROUTINES = SUBROUTINES
+		self.OUT_FILE = OUT_FILE
 
 	class Subroutine():
 		def __init__(self, file, name, signature, signature_lines, args, declarations_lines):
@@ -45,7 +46,10 @@ f"""{get_wrapper_header()}
       call cpu_time(start)
 
       !$OMP CRITICAL
-      open(61,file='{self.SCRIPT_DIR}/qawa.out',
+      open(61,file=
+     $'{self.SCRIPT_DIR}
+     $/outs/
+     ${self.OUT_FILE}',
      $action='write',position='append')
       write(61,'(A,I2,A2,I2)')
      $'-> {subroutine.file} {subroutine.name}',
@@ -58,7 +62,10 @@ f"""{get_wrapper_header()}
       wtime2 = omp_get_wtime()
 	
       !$OMP CRITICAL
-      open(61,file='{self.SCRIPT_DIR}/qawa.out',
+      open(61,file=
+     $'{self.SCRIPT_DIR}
+     $/outs/
+     ${self.OUT_FILE}',
      $action='write',position='append')
       write(61,'(A,2F14.6)')
      $'<- {subroutine.file} {subroutine.name}',

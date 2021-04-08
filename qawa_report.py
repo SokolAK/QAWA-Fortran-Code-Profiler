@@ -149,8 +149,8 @@ CPU time: {unit_max_s_cl.procedure} [{unit_max_s_cl.file}]: {unit_max_s_cl.cpu_t
         file_flow = f"{self.QAWA_OUT}.flow"
         print(f"Preparing {file_flow}...")
         with open(file_flow, 'w') as f:
-            #f.write(f"QAWA FLOW REPORT\n")
-            #f.write(f"----------------\n")
+            f.write(f"QAWA FLOW REPORT\n")
+            f.write(f"----------------\n")
             tab = '    '
             running_tab = ''
             for line in self.lines:
@@ -168,6 +168,7 @@ CPU time: {unit_max_s_cl.procedure} [{unit_max_s_cl.file}]: {unit_max_s_cl.cpu_t
         lines = []
         with open(f"{self.QAWA_OUT}.flow", 'r') as f:
             lines = f.readlines()
+        lines = lines [2:]
 
         for n in range(1, len(lines), 1):
             i = 0
@@ -195,45 +196,9 @@ CPU time: {unit_max_s_cl.procedure} [{unit_max_s_cl.file}]: {unit_max_s_cl.cpu_t
                                 lines[j] = f"{lines[j].rstrip()}{''.join([' ']*(max_length - len(lines[j].rstrip())))}   |\n"
                             lines[i0] = f"{lines[i0].rstrip()}x{no}\n"
 
-        # #Check
-        # no_calls_full = 0
-        # for line in self.lines:
-        #     if line.startswith('->'):
-        #         no_calls_full += 1
-
-        # import numpy as np
-        # factor_stack = []
-        # running_tab = -1
-        # no_calls_short = 0   
-        # for line in lines:
-        #     factor = 1
-        #     tab = int((len(line) - len(line.lstrip()))/4)
-            
-        #     #print(tab)
-        #     if line.rstrip().endswith(')'):
-        #         factor = int(line.rstrip()[line.index('(')+2:-1])
-
-        #     if tab > running_tab:
-        #         running_tab = tab
-        #         factor_stack.append(factor)
-
-        #     elif tab == running_tab:
-        #         factor_stack.pop()
-        #         factor_stack.append(factor) 
-
-        #     else:
-        #         factor_stack = factor_stack[:tab+1]
-        #         factor_stack.append(factor)
-
-            
-        #     no_calls_short += np.prod(factor_stack)
-        #     print(np.prod(factor_stack), no_calls_short, line.rstrip(), factor_stack)
-
-        # print(f"Check: {no_calls_full} / {no_calls_short}")
-
         with open(file_flow, 'w') as f:
-            #f.write(f"QAWA SHORT FLOW REPORT\n")
-            #f.write(f"----------------------\n")
+            f.write(f"QAWA SHORT FLOW REPORT\n")
+            f.write(f"----------------------\n")
             for line in lines:
                 f.write(line)
 
