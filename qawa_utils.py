@@ -82,3 +82,10 @@ def prepare_file(filename):
 
 def get_separator(symbol, length):
     return ''.join([symbol]*length)
+
+def any_in(key_words, line):
+    line = line.strip().lower()
+    for key_word in key_words:
+        if key_word in line:
+            return True
+    return False

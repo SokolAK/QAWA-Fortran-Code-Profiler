@@ -1,5 +1,6 @@
 import sys, os
 from qawa_subroutine_wrapper import Subroutine_wrapper
+from qawa_procedure_wrapper import Procedure_wrapper
 from qawa_main_wrapper import Main_wrapper
 from qawa_report import Report_generator
 from qawa_strings import get_banner
@@ -13,9 +14,9 @@ MAKEFILE = PROJECT_DIR + 'Makefile'
 SOURCE_DIR = PROJECT_DIR + 'SOURCE/'
 MAIN_FILE = SOURCE_DIR + 'mainp.f'
 FILES = ['*', '-sorter.f90', '-tran.f90', '-timing.f90']
+PROCEDURES = ['f', 's', '-ints_modify']
 #FILES = ['misc.f']
-SUBROUTINES = ['*', '-ints_modify']
-FUNCTIONS = []
+#PROCEDURES = ['NAddr3']
 ########################################################################
 
 SCRIPT_DIR = os.path.dirname(os.path.realpath(__file__))
@@ -43,14 +44,13 @@ def wrong_usage():
 
 def wrap():
     OUT_FILE = sys.argv[2] if len(sys.argv) > 2 else 'qawa.out'
-    print(OUT_FILE)
-
+    unwrap()
     print("[QAWA] Wrapping...")
-    sub_wrapper = Subroutine_wrapper(SCRIPT_DIR=SCRIPT_DIR, 
+    sub_wrapper = Procedure_wrapper(SCRIPT_DIR=SCRIPT_DIR, 
         SOURCE_DIR=SOURCE_DIR,
         OUT_FILE=OUT_FILE,
         FILES=FILES,
-        SUBROUTINES=SUBROUTINES)
+        PROCEDURES=PROCEDURES)
     sub_wrapper.wrap()
 
     main_wrapper = Main_wrapper(SCRIPT_DIR, MAIN_FILE, OUT_FILE)
@@ -59,6 +59,10 @@ def wrap():
 def unwrap():
     print("[QAWA] Unwrapping...")
     unwrap_dir(SOURCE_DIR)
+
+def rewrap():
+    unwrap()
+    wrap()
 
 def make(clean=False):
     print("[QAWA] Building executable...")
@@ -100,6 +104,7 @@ commands = {
     'rebuild': rebuild,
     'restore': restore,
     'report': generate_report
+    #'rewrap': rewrap
 }
 command = sys.argv[1]
 function = commands.get(command,help)

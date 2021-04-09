@@ -170,7 +170,7 @@ CPU time: {unit_max_s_cl.procedure} [{unit_max_s_cl.file}]: {unit_max_s_cl.cpu_t
             lines = f.readlines()
         lines = lines [2:]
 
-        for n in range(1, len(lines), 1):
+        for n in range(1, int(len(lines)/2+1), 1):
             i = 0
             while i < len(lines) - n:
                 flag = True
