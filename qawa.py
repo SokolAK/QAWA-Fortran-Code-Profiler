@@ -120,6 +120,10 @@ commands = {
 }
 command = sys.argv[1]
 function = commands.get(command,help)
+
+if not os.path.exists(f"{SCRIPT_DIR}/outs"):
+    os.makedirs(f"{SCRIPT_DIR}/outs")
+
 function()
 print("[QAWA] Done")
 
