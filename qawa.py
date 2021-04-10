@@ -1,6 +1,7 @@
 import sys, os
 from qawa_subroutine_wrapper import Subroutine_wrapper
 from qawa_procedure_wrapper import Procedure_wrapper
+from qawa_function_wrapper import Function_wrapper
 from qawa_main_wrapper import Main_wrapper
 from qawa_report import Report_generator
 from qawa_strings import get_banner
@@ -13,10 +14,10 @@ PROJECT_DIR = '/home/adam.sokol/QCHEM/GAMMCOR_GitLab/'
 MAKEFILE = PROJECT_DIR + 'Makefile'
 SOURCE_DIR = PROJECT_DIR + 'SOURCE/'
 MAIN_FILE = SOURCE_DIR + 'mainp.f'
-FILES = ['*', '-sorter.f90', '-tran.f90', '-timing.f90']
-PROCEDURES = ['f', 's', '-ints_modify']
-#FILES = ['misc.f']
-#PROCEDURES = ['NAddr3']
+SUBROUTINES_FILES = ['*', '-sorter.f90', '-tran.f90', '-timing.f90']
+SUBROUTINES = ['*', '-ints_modify']
+FUNCTIONS_FILES = ['*', '-timing.f90', '-types.f90', '-interpa.f']
+FUNCTIONS = ['*']
 ########################################################################
 
 SCRIPT_DIR = os.path.dirname(os.path.realpath(__file__))
@@ -24,17 +25,17 @@ SCRIPT_DIR = os.path.dirname(os.path.realpath(__file__))
 
 def help():
     print("[QAWA] Help")
-    print(f"""Usage: qawa <command>
+    print()
+    print(f"""Usage: qawa <command>\n
 List of commands:
-    wrap [out]     --  add profiling wrappers to files listed in qawa.py. 
-                       Profiling data will be saved to [out] file located in <QAWA_DIR>/outs/.
-                       If no [out] is passed, the output filename is set to 'qawa.out'.
-    make           --  rebuild wrapped project
-    build [out]    --  wrap [out] + make
-    unwrap         --  remove profiling wrappers from all files in SOURCE_DIR specified in qawa.py
-    restore        --  unwrap + make
-    rebuild [out]  --  unwrap + wrap [out] + make
-    report [out]   --  generate reports based on the given [out] file
+    wrap [out]    --  add profiling wrappers to files listed in qawa.py. 
+                      Profiling data will be saved to [out] file located in <QAWA_DIR>/outs/.
+                      If no [out] is passed, the output filename is set to 'qawa.out'.
+    make          --  build wrapped project
+    build [out]   --  wrap [out] + make
+    unwrap        --  remove profiling wrappers from all files in SOURCE_DIR specified in qawa.py
+    restore       --  unwrap + make
+    report [out]  --  generate reports based on the given [out] file
     """)
 
 def wrong_usage():
@@ -46,12 +47,19 @@ def wrap():
     OUT_FILE = sys.argv[2] if len(sys.argv) > 2 else 'qawa.out'
     unwrap()
     print("[QAWA] Wrapping...")
-    sub_wrapper = Procedure_wrapper(SCRIPT_DIR=SCRIPT_DIR, 
+    sub_wrapper = Subroutine_wrapper(SCRIPT_DIR=SCRIPT_DIR, 
         SOURCE_DIR=SOURCE_DIR,
         OUT_FILE=OUT_FILE,
-        FILES=FILES,
-        PROCEDURES=PROCEDURES)
+        FILES=SUBROUTINES_FILES,
+        SUBROUTINES=SUBROUTINES)
     sub_wrapper.wrap()
+
+    fun_wrapper = Function_wrapper(SCRIPT_DIR=SCRIPT_DIR, 
+        SOURCE_DIR=SOURCE_DIR,
+        OUT_FILE=OUT_FILE,
+        FILES=FUNCTIONS_FILES,
+        FUNCTIONS=FUNCTIONS)
+    fun_wrapper.wrap()
 
     main_wrapper = Main_wrapper(SCRIPT_DIR, MAIN_FILE, OUT_FILE)
     main_wrapper.wrap()
@@ -101,7 +109,7 @@ commands = {
     'unwrap': unwrap,
     'build': build,
     'make': make,
-    'rebuild': rebuild,
+    #'rebuild': rebuild,
     'restore': restore,
     'report': generate_report
     #'rewrap': rewrap

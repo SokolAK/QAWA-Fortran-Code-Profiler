@@ -2,9 +2,9 @@ import os
 from shutil import copy
 
 def get_declaration_key_words():
-    return ['program','use','include','data','implicit','character', \
-            'real','double','integer','dimension','logical','complex', \
-            'parameter','type', 'common']
+    return ['program','use','include','data','implicit','external', \
+            'character','real','double','integer','dimension','logical', \
+            'complex','parameter','type','common']
 
 
 def is_comment(file, line):
@@ -89,3 +89,42 @@ def any_in(key_words, line):
         if key_word in line:
             return True
     return False
+
+def prepare_file_list(SOURCE_DIR, FILES):
+    files = []
+    for (dirpath, dirnames, filenames) in os.walk(SOURCE_DIR):
+        files += [os.path.join(dirpath, file).replace(SOURCE_DIR,'') for file in filenames]
+    files = set([file for file in files if file.endswith('.f') or file.endswith('.f90')])
+    #files.update([f for f in listdir(SOURCE_DIR) if isfile(join(SOURCE_DIR, f))])
+    files = [f for f in files if f in FILES or '*' in FILES]
+    files = [f for f in files if f"-{f}" not in FILES]
+    print(f"FILES: {files}")
+    return files
+
+def get_procedure_name_from_line(line):
+    i = 0
+    if 'subroutine' in line.lower():
+        i = line.lower().find('subroutine') + 10
+    if 'function' in line.lower():
+        i = line.lower().find('function') + 8
+    tab = len(line[i:]) - len(line[i:].lstrip())
+    i += tab
+    line = line[i:]
+    iE = line.find('(')
+    return line[:iE]
+
+    
+def is_f90_format(file):
+    return file.lower().rstrip().endswith('.f90')
+
+
+def save_file(file, lines):
+    with open(file, 'w') as f:
+        for line in lines:
+            f.write(line)  
+
+def read_file(filename):
+    lines = []
+    with open(filename, 'r') as f:
+        lines = f.readlines()
+    return lines

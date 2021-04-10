@@ -24,7 +24,7 @@ class Main_wrapper():
      $/outs/
      ${self.OUT_FILE}',
      $action='write')
-      write(61,'(A,I2,A2,I2)') '-> {self.MAIN_FILE_NAME} MAIN',
+      write(61,'(A,I2,A2,I2)') '-> {self.MAIN_FILE_NAME} MAIN M',
      $OMP_GET_THREAD_NUM()+1, '/', OMP_GET_NUM_THREADS()
       close(61)
       !$OMP END CRITICAL
@@ -50,7 +50,7 @@ class Main_wrapper():
      $/outs/
      ${self.OUT_FILE}',
      $action='write',position='append')
-      write(61,'(A,2F14.6)') '<- {self.MAIN_FILE_NAME} MAIN',
+      write(61,'(A,2F14.6)') '<- {self.MAIN_FILE_NAME} MAIN M',
      $end-start, wtime2-wtime
       close(61)
       !$OMP END CRITICAL
