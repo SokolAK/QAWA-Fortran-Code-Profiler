@@ -12,6 +12,7 @@ class Function_wrapper():
         self.FUNCTIONS = FUNCTIONS
         self.OUT_FILE = OUT_FILE
 
+
     class Function():
         def __init__(self, file, name):
             self.file = file
@@ -24,31 +25,28 @@ class Function_wrapper():
         files = prepare_file_list(self.SOURCE_DIR, self.FILES)
         for file in files:
             lines = read_file(f"{self.SOURCE_DIR}/{file}")
-
             functions = self.find_functions(file, lines)
             for function in functions:
                 print(f"{file:20s}{function.name:20s}", end='', flush=True)
-                self.wrap_function(lines, function)
+                self.wrap_function(file, lines, function)
                 print('wrapped')
 
-            #self.modify_ends(lines, functions)
             save_file(f"{self.SOURCE_DIR}/{file}", lines)
-        #self.modify_stops()
 
 
-    def find_function(self, lines, function):
+    def find_function(self, file, lines, function):
         i = 0
-        while not (self.is_function_start(lines[i]) and \
+        while not (self.is_function_start(file, lines[i]) and \
                 function.name == get_procedure_name_from_line(lines[i])):
             i += 1
         return i
 
 
-    def wrap_function(self, lines, function):
+    def wrap_function(self, file, lines, function):
         prepare_file(f"{self.SOURCE_DIR}/{function.file}")
-        i = self.find_function(lines, function)
+        i = self.find_function(file, lines, function)
 
-        while lines[i].rstrip().endswith('&') or lines[i+1].lstrip().startswith('&') or lines[i+1].lstrip().startswith('$'):
+        while is_broken_line(lines, i):
             i += 1
         i += 1
         lines.insert(i, '      use omp_lib\n')
@@ -58,19 +56,53 @@ class Function_wrapper():
 
         lines.insert(i, self.get_before_fragment(function))
 
-        while not 'end function' in lines[i].lower() and not ('end' in lines[i].lower() and 'return' in lines[i-1].lower()):
+        while not 'end function' in lines[i].lower() and \
+                not ('end' in lines[i].lower() and \
+                'return' in lines[i-1].lower()):
+
             if lines[i].strip().lower() == 'return':
                 lines.insert(i, self.get_after_fragment(function))
                 i += 1
+            if i + 1 == len(lines):
+                break
             i += 1
 
         if 'end function' in lines[i].lower():
             lines.insert(i, self.get_after_fragment(function))
 
 
+    def find_functions(self, file, lines):
+        functions = []
+        i = 0
+        while i < len(lines):
+            line = lines[i]
+            if self.should_wrap(file, lines, i):
+                name = get_procedure_name_from_line(line)
+                functions.append(self.Function(file,name))
+            i += 1
+        return functions
+
+
+    def should_wrap(self, file, lines, i):
+        line = lines[i]
+        return not is_comment(file, line) and \
+            self.is_function_start(file, line) and \
+            (get_procedure_name_from_line(line) in self.FUNCTIONS or \
+                ('*' in self.FUNCTIONS and f"-{get_procedure_name_from_line(line)}" not in self.FUNCTIONS)) and \
+            not self.is_wrapped_function(lines, i)
+
+
+    def is_function_start(self, file, line):
+        return not is_comment(file, line) and not 'end' in line.lower()+' ' and 'function ' in line.lower()
+
+
+    def is_wrapped_function(self, lines, i):
+        return True if 'qawa wrapped function' in lines[i-1] else False
+
+
     def get_before_fragment(self, function):
         fragment= f"""
-{get_fragment_header()}
+{get_fragment_header(f"open_{get_prefix()}{function.name}")}
       real :: start, end
       real ( kind = 8 ) :: wtime, wtime2
       wtime = omp_get_wtime()
@@ -94,9 +126,10 @@ class Function_wrapper():
         
         return fragment
         
+
     def get_after_fragment(self, function):
         fragment= f"""
-{get_fragment_header()}
+{get_fragment_header(f"close_{get_prefix()}{function.name}")}
       call cpu_time(end)
       wtime2 = omp_get_wtime()
       !$OMP CRITICAL
@@ -117,35 +150,3 @@ class Function_wrapper():
             fragment = convert_text_block_from_f77_to_f90(fragment)
         
         return fragment
-
-    def find_functions(self, file, lines):
-        functions = []
-        i = 0
-        while i < len(lines):
-            line = lines[i]
-            if self.should_wrap(file, lines, i):
-                name = get_procedure_name_from_line(line)
-                functions.append(self.Function(file,name))
-            i += 1
-        return functions
-
-
-    def should_wrap(self, file, lines, i):
-        line = lines[i].strip()
-        return not is_comment(file, line) and \
-            self.is_function_start(line) and \
-            (get_procedure_name_from_line(line) in self.FUNCTIONS or \
-                ('*' in self.FUNCTIONS and f"-{get_procedure_name_from_line(line)}" not in self.FUNCTIONS)) and \
-            not self.is_wrapped_function(lines, i)
-
-
-    def is_function_start(self, line):
-        items = line.strip().lower().split()
-        if not 'end' in items:
-            if (len(items) > 0 and items[0] == 'function') or (len(items) > 1 and items[1] == 'function'):
-                return True
-        return False
-
-
-    def is_wrapped_function(self, lines, i):
-        return True if 'qawa wrapped function' in lines[i-1] else False

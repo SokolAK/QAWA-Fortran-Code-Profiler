@@ -1,11 +1,16 @@
 import os
 from shutil import copy
+from qawa_strings import get_prefix
+
 
 def get_declaration_key_words():
     return ['program','use','include','data','implicit','external', \
             'character','real','double','integer','dimension','logical', \
             'complex','parameter','type','common']
 
+
+def is_broken_line(lines, i):
+    return lines[i].rstrip().endswith('&') or lines[i+1].lstrip().startswith('&') or lines[i+1].lstrip().startswith('$')
 
 def is_comment(file, line):
     if not line.strip():
@@ -98,7 +103,7 @@ def prepare_file_list(SOURCE_DIR, FILES):
     #files.update([f for f in listdir(SOURCE_DIR) if isfile(join(SOURCE_DIR, f))])
     files = [f for f in files if f in FILES or '*' in FILES]
     files = [f for f in files if f"-{f}" not in FILES]
-    print(f"FILES: {files}")
+    #print(f"FILES: {files}")
     return files
 
 def get_procedure_name_from_line(line):
@@ -128,3 +133,73 @@ def read_file(filename):
     with open(filename, 'r') as f:
         lines = f.readlines()
     return lines
+
+
+def get_all_procedures_names(SOURCE_DIR):
+    procedures = []
+    files = prepare_file_list(SOURCE_DIR, ['*'])
+    for file in files:
+        lines = read_file(f"{SOURCE_DIR}/{file}")
+        for line in lines:
+
+            if not is_comment(file, line) and \
+                    line.lower().strip().startswith('subroutine'):
+                procedures.append([file, get_procedure_name_from_line(line), 'S'])
+
+            if not is_comment(file, line) and \
+                    (not 'end' in line.lower()+' ' and 'function ' in line.lower()):
+                procedures.append([file, get_procedure_name_from_line(line), 'F'])
+
+    return procedures
+
+
+def generate_wrap_report(SCRIPT_DIR, SOURCE_DIR, SUBROUTINES_FILES, FUNCTIONS_FILES, SUBROUTINES, FUNCTIONS):
+    with open(f"{SCRIPT_DIR}/outs/qawa_wrap_report", 'w') as f:
+
+        files = prepare_file_list(SOURCE_DIR, ['*'])
+        for file in files:
+            lines = read_file(f"{SOURCE_DIR}/{file}")
+            for i, line in enumerate(lines):
+                typ = '-'
+                wrapped = ''
+                error = ''
+                name = ''
+
+                if not is_comment(file, line) and not get_prefix() in line:
+                    if line.lower().strip().startswith('subroutine'):
+                        typ = 'S'
+                        name = get_procedure_name_from_line(line)
+                        for j in range(i+1, len(lines), 1):
+                            if f"{get_prefix()}{name}" in lines[j]:
+                                wrapped = 'wrapped'
+                                break
+                        if file in SUBROUTINES_FILES or ('*' in SUBROUTINES_FILES and f"-{file}" not in SUBROUTINES_FILES):
+                            if name in SUBROUTINES or ('*' in SUBROUTINES and f"-{name}" not in SUBROUTINES):
+                                if not wrapped:
+                                    error = 'error'
+
+                    if not 'end' in line.lower()+' ' and 'function ' in line.lower():
+                        typ = 'F'
+                        fragment_open = False
+                        fragment_close = False
+                        name = get_procedure_name_from_line(line)
+                        for j in range(i+1, len(lines), 1):
+                            if f"open_{get_prefix()}{name}" in lines[j]:
+                                fragment_open = True
+                            if f"close_{get_prefix()}{name}" in lines[j]:
+                                fragment_close = True
+                            if fragment_open and fragment_close:
+                                wrapped = 'wrapped'
+                                break
+                        if file in FUNCTIONS_FILES or ('*' in FUNCTIONS_FILES and f"-{file}" not in FUNCTIONS_FILES):
+                            if name in FUNCTIONS or ('*' in FUNCTIONS and f"-{name}" not in FUNCTIONS):
+                                if not wrapped:
+                                    error = 'error'
+
+                            #if f"{get_prefix()}{get_procedure_name_from_line(line)}" in lines[j]:
+                            #    wrapped = 'wrapped'
+                            #    break
+
+                    if typ in 'FS':
+                        #wrapped_procedures.append([file, get_procedure_name_from_line(line), typ, wrapped, error])
+                        f.write(f"{file:30s}{name:30s}{typ:10s}{wrapped:20s}{error:20s}\n")  

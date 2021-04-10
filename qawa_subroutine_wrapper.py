@@ -12,6 +12,7 @@ class Subroutine_wrapper():
         self.SUBROUTINES = SUBROUTINES
         self.OUT_FILE = OUT_FILE
 
+
     class Subroutine():
         def __init__(self, file, name, signature, signature_lines, args, declarations_lines):
             self.file = file
@@ -28,102 +29,42 @@ class Subroutine_wrapper():
         lines.insert(i, str + '\n')
         return i + 1
 
+
     def add_wrapper(self, lines, i, wrapper):
         for line in wrapper.splitlines():
             i = self.add_line(lines, i, line)
         return i
 
-    def prepare_subroutine_wrapper(self, subroutine):
-        wrapper_body = \
-f"""{get_wrapper_header()}
-{subroutine.signature_lines}
-      use omp_lib
-{subroutine.declarations_lines}
-      real :: start, end
-      real ( kind = 8 ) :: wtime, wtime2
-      wtime = omp_get_wtime()
-      call cpu_time(start)
-
-      !$OMP CRITICAL
-      open(61,file=
-     $'{self.SCRIPT_DIR}
-     $/outs/
-     ${self.OUT_FILE}',
-     $action='write',position='append')
-      write(61,'(A,I2,A2,I2)')
-     $'-> {subroutine.file} {subroutine.name} S',
-     $OMP_GET_THREAD_NUM()+1, '/', OMP_GET_NUM_THREADS()
-      close(61)
-      !$OMP END CRITICAL
-
-      call {get_prefix()}{subroutine.signature_lines.replace('subroutine','').replace('Subroutine','').replace('SUBROUTINE','').lstrip()}
-      call cpu_time(end)
-      wtime2 = omp_get_wtime()
-    
-      !$OMP CRITICAL
-      open(61,file=
-     $'{self.SCRIPT_DIR}
-     $/outs/
-     ${self.OUT_FILE}',
-     $action='write',position='append')
-      write(61,'(A,2F14.6)')
-     $'<- {subroutine.file} {subroutine.name} S',
-     $end-start, wtime2-wtime
-      close(61)
-      !$OMP END CRITICAL
-
-      return
-      end
-{get_wrapper_footer()}
-
-"""
-
-        if subroutine.file.lower().rstrip().endswith('.f90'):
-            wrapper_body = convert_text_block_from_f77_to_f90(wrapper_body)
-        
-        return wrapper_body
-        
 
     def is_subroutine_start(self, line):
         return line.lower().strip().startswith('subroutine')
 
+
     def is_wrapper(self, line):
         return line.strip() == get_wrapper_header()
 
+
     def is_wrapped_subroutine(self, subroutine):
         return subroutine.startswith(get_prefix())
+
 
     def is_subroutine_on_list(self, subroutine):
         return subroutine in self.SUBROUTINES or \
             ('*' in self.SUBROUTINES and f"-{subroutine}" not in self.SUBROUTINES)
 
+
     def get_subroutine_name_from_line(self, line):
         return line.strip().replace('(',' ').split()[1]
 
+
     def should_wrap(self, file, lines, i):
-        line = lines[i].strip()
+        line = lines[i]
         return not is_comment(file, line) and \
             self.is_subroutine_start(line) and \
             (get_procedure_name_from_line(line) in self.SUBROUTINES or \
                 ('*' in self.SUBROUTINES and f"-{get_procedure_name_from_line(line)}" not in self.SUBROUTINES)) and \
             not self.is_wrapper(lines[i-1]) and \
             not self.is_wrapped_subroutine(get_procedure_name_from_line(line))
-
-
-    def process_line(self, file, lines, i):
-        # if self.should_wrap(file,lines,i):
-        #     subroutine = get_subroutine_from_line(line)
-        #     print(f"{file:20s}{subroutine.name:20s}", end='', flush=True)
-        #     if self.is_subroutine_on_list(subroutine):
-        #         j = i + 1
-        #         while not lines[j].lstrip().lower().startswith('end'):
-        #             j += 1
-        #             di = self.wrap_subroutine(file, subroutine, lines, i, j)
-        #             print('                wrapped', end='')
-        #             i += di
-        #     print()
-
-        return i 
 
 
     def modify_stops(self):
@@ -186,13 +127,9 @@ f"""{get_wrapper_header()}
             if subroutine.file.strip().endswith('.f90'):
                 lines[i] = f"{lines[i]}&\n"
 
-        #subroutine.declarations = self.get_declarations(lines,i,subroutine)
-        #wrapper = self.prepare_subroutine_wrapper(subroutine).split('\n')
-        #wrapper = [w+'\n' for w in wrapper]
         wrapper = self.prepare_subroutine_wrapper(subroutine)
         lines.insert(i, wrapper)
 
-        #print(lines[i])
 
     def find_subroutines(self, file, lines):
         subroutines = []
@@ -254,3 +191,53 @@ f"""{get_wrapper_header()}
         self.modify_stops()
 
 
+    def prepare_subroutine_wrapper(self, subroutine):
+        wrapper_body = \
+f"""{get_wrapper_header()}
+{subroutine.signature_lines}
+      use omp_lib
+{subroutine.declarations_lines}
+      real :: start, end
+      real ( kind = 8 ) :: wtime, wtime2
+      wtime = omp_get_wtime()
+      call cpu_time(start)
+
+      !$OMP CRITICAL
+      open(61,file=
+     $'{self.SCRIPT_DIR}
+     $/outs/
+     ${self.OUT_FILE}',
+     $action='write',position='append')
+      write(61,'(A,I2,A2,I2)')
+     $'-> {subroutine.file} {subroutine.name} S',
+     $OMP_GET_THREAD_NUM()+1, '/', OMP_GET_NUM_THREADS()
+      close(61)
+      !$OMP END CRITICAL
+
+      call {get_prefix()}{subroutine.signature_lines.replace('subroutine','').replace('Subroutine','').replace('SUBROUTINE','').lstrip()}
+      call cpu_time(end)
+      wtime2 = omp_get_wtime()
+    
+      !$OMP CRITICAL
+      open(61,file=
+     $'{self.SCRIPT_DIR}
+     $/outs/
+     ${self.OUT_FILE}',
+     $action='write',position='append')
+      write(61,'(A,2F14.6)')
+     $'<- {subroutine.file} {subroutine.name} S',
+     $end-start, wtime2-wtime
+      close(61)
+      !$OMP END CRITICAL
+
+      return
+      end
+{get_wrapper_footer()}
+
+"""
+
+        if subroutine.file.lower().rstrip().endswith('.f90'):
+            wrapper_body = convert_text_block_from_f77_to_f90(wrapper_body)
+        
+        return wrapper_body
+        

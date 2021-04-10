@@ -1,6 +1,5 @@
 import sys, os
 from qawa_subroutine_wrapper import Subroutine_wrapper
-from qawa_procedure_wrapper import Procedure_wrapper
 from qawa_function_wrapper import Function_wrapper
 from qawa_main_wrapper import Main_wrapper
 from qawa_report import Report_generator
@@ -19,7 +18,6 @@ SUBROUTINES = ['*', '-ints_modify']
 FUNCTIONS_FILES = ['*', '-timing.f90', '-types.f90', '-interpa.f']
 FUNCTIONS = ['*']
 ########################################################################
-
 SCRIPT_DIR = os.path.dirname(os.path.realpath(__file__))
 
 
@@ -35,7 +33,7 @@ List of commands:
     build [out]   --  wrap [out] + make
     unwrap        --  remove profiling wrappers from all files in SOURCE_DIR specified in qawa.py
     restore       --  unwrap + make
-    report [out]  --  generate reports based on the given [out] file
+    report <out>  --  generate reports based on the given <out> file
     """)
 
 def wrong_usage():
@@ -46,14 +44,16 @@ def wrong_usage():
 def wrap():
     OUT_FILE = sys.argv[2] if len(sys.argv) > 2 else 'qawa.out'
     unwrap()
-    print("[QAWA] Wrapping...")
+
+    print("[QAWA] Wrapping subroutines...")
     sub_wrapper = Subroutine_wrapper(SCRIPT_DIR=SCRIPT_DIR, 
         SOURCE_DIR=SOURCE_DIR,
         OUT_FILE=OUT_FILE,
         FILES=SUBROUTINES_FILES,
         SUBROUTINES=SUBROUTINES)
     sub_wrapper.wrap()
-
+    
+    print("[QAWA] Wrapping functions...")
     fun_wrapper = Function_wrapper(SCRIPT_DIR=SCRIPT_DIR, 
         SOURCE_DIR=SOURCE_DIR,
         OUT_FILE=OUT_FILE,
@@ -61,8 +61,12 @@ def wrap():
         FUNCTIONS=FUNCTIONS)
     fun_wrapper.wrap()
 
+    print("[QAWA] Wrapping main...")
     main_wrapper = Main_wrapper(SCRIPT_DIR, MAIN_FILE, OUT_FILE)
     main_wrapper.wrap()
+
+    print("[QAWA] Generating wrap report...")
+    generate_wrap_report(SCRIPT_DIR, SOURCE_DIR, SUBROUTINES_FILES, FUNCTIONS_FILES, SUBROUTINES, FUNCTIONS)
 
 def unwrap():
     print("[QAWA] Unwrapping...")
