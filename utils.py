@@ -135,24 +135,6 @@ def read_file(filename):
     return lines
 
 
-def get_all_procedures_names(SOURCE_DIR):
-    procedures = []
-    files = prepare_file_list(SOURCE_DIR, ['*'])
-    for file in files:
-        lines = read_file(f"{SOURCE_DIR}/{file}")
-        for line in lines:
-
-            if not is_comment(file, line) and \
-                    line.lower().strip().startswith('subroutine'):
-                procedures.append([file, get_procedure_name_from_line(line), 'S'])
-
-            if not is_comment(file, line) and \
-                    (not 'end' in line.lower()+' ' and 'function ' in line.lower()):
-                procedures.append([file, get_procedure_name_from_line(line), 'F'])
-
-    return procedures
-
-
 def generate_wrap_report(SCRIPT_DIR, SOURCE_DIR, SUBROUTINES_FILES, FUNCTIONS_FILES, SUBROUTINES, FUNCTIONS):
     with open(f"{SCRIPT_DIR}/outs/qawa_wrap_report", 'w') as f:
 

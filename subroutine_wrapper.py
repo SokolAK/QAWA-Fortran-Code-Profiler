@@ -25,14 +25,103 @@ class Subroutine_wrapper():
             return f"{self.file:20s} {self.name:20s}"
 
 
-    def add_line(self, lines, i, str):
-        lines.insert(i, str + '\n')
-        return i + 1
+    def wrap(self):
+        files = prepare_file_list(self.SOURCE_DIR, self.FILES)
+
+        for file in files:
+            lines = []
+            lines = read_file(f"{self.SOURCE_DIR}/{file}")
+
+            subroutines = self.find_subroutines(file, lines)
+            for subroutine in subroutines:
+                print(subroutine, end='')
+                self.wrap_subroutine(lines, subroutine)
+                print('wrapped')
+
+            self.modify_ends(lines, subroutines)
+
+            save_file(f"{self.SOURCE_DIR}/{file}",lines)
+
+        self.modify_stops()
 
 
-    def add_wrapper(self, lines, i, wrapper):
-        for line in wrapper.splitlines():
-            i = self.add_line(lines, i, line)
+    def find_subroutines(self, file, lines):
+        subroutines = []
+        i = 0
+        while i < len(lines):
+            line = lines[i]
+            if self.should_wrap(file, lines, i):
+                name = get_procedure_name_from_line(line)
+
+                signature_lines = []
+                signature_lines.append(line)
+                signature = name + line[line.find('('):].replace('&', '').strip()
+                while not signature.endswith(')'):
+                    i += 1
+                    signature += f"{lines[i].replace('&', '').replace('$','').strip()}"
+                    signature_lines.append(lines[i])
+                signature_lines = ''.join(signature_lines)
+
+                args = []
+                args_str = signature.replace(name,'') \
+                    .replace('(', '') \
+                    .replace(')', '') \
+                    .replace('&', '') \
+                    .replace(' ', '')
+                args = args_str.split(',')    
+
+                i += 1
+                declarations_lines = []
+                key_words = get_declaration_key_words()
+                end_of_declarations = False
+                while is_declaration(file,lines,i):
+                    if not is_comment(file, lines[i]):    
+                        declarations_lines.append(lines[i])
+                    i += 1
+
+                declarations_lines = ''.join(declarations_lines)
+                subroutines.append(self.Subroutine(file,name,signature,signature_lines,args,declarations_lines))
+            i += 1
+        return subroutines
+
+
+    def should_wrap(self, file, lines, i):
+        line = lines[i]
+        return not is_comment(file, line) and \
+            self.is_subroutine_start(line) and \
+            (get_procedure_name_from_line(line) in self.SUBROUTINES or \
+                ('*' in self.SUBROUTINES and f"-{get_procedure_name_from_line(line)}" not in self.SUBROUTINES)) and \
+            not self.is_wrapper(lines[i-1]) and \
+            not self.is_wrapped_subroutine(get_procedure_name_from_line(line))
+
+
+    def wrap_subroutine(self, lines, subroutine):
+        prepare_file(f"{self.SOURCE_DIR}/{subroutine.file}")
+        i = self.find_subroutine(lines, subroutine)
+        
+        lines[i] = lines[i].replace(subroutine.name, f"{get_prefix()}{subroutine.name}")
+        line = lines[i]
+        
+        splitted_line = line.split('(')
+        if len(splitted_line) > 1:
+            lines[i] = splitted_line[0]
+            lines.insert(i+1, f"({splitted_line[1]}")
+
+            if subroutine.file.strip().endswith('.f'):
+                lines[i] = f"{lines[i]}\n"
+                lines[i+1] = f"     ${lines[i+1]}"
+            if subroutine.file.strip().endswith('.f90'):
+                lines[i] = f"{lines[i]}&\n"
+
+        wrapper = self.prepare_subroutine_wrapper(subroutine)
+        lines.insert(i, wrapper)
+
+
+    def find_subroutine(self, lines, subroutine):
+        i = 0
+        while not (self.is_subroutine_start(lines[i]) and \
+                subroutine.name == get_procedure_name_from_line(lines[i])):
+            i += 1
         return i
 
 
@@ -51,20 +140,6 @@ class Subroutine_wrapper():
     def is_subroutine_on_list(self, subroutine):
         return subroutine in self.SUBROUTINES or \
             ('*' in self.SUBROUTINES and f"-{subroutine}" not in self.SUBROUTINES)
-
-
-    def get_subroutine_name_from_line(self, line):
-        return line.strip().replace('(',' ').split()[1]
-
-
-    def should_wrap(self, file, lines, i):
-        line = lines[i]
-        return not is_comment(file, line) and \
-            self.is_subroutine_start(line) and \
-            (get_procedure_name_from_line(line) in self.SUBROUTINES or \
-                ('*' in self.SUBROUTINES and f"-{get_procedure_name_from_line(line)}" not in self.SUBROUTINES)) and \
-            not self.is_wrapper(lines[i-1]) and \
-            not self.is_wrapped_subroutine(get_procedure_name_from_line(line))
 
 
     def modify_stops(self):
@@ -99,96 +174,6 @@ class Subroutine_wrapper():
                     for subroutine in subroutines:
                         if subroutine.name.lower() == name.lower():
                             lines[i] = line.replace(name, f"{get_prefix()}{name}")
-
-
-    def find_subroutine(self, lines, subroutine):
-        i = 0
-        while not (self.is_subroutine_start(lines[i]) and \
-                subroutine.name == self.get_subroutine_name_from_line(lines[i])):
-            i += 1
-        return i
-
-
-    def wrap_subroutine(self, lines, subroutine):
-        prepare_file(f"{self.SOURCE_DIR}/{subroutine.file}")
-        i = self.find_subroutine(lines, subroutine)
-        
-        lines[i] = lines[i].replace(subroutine.name, f"{get_prefix()}{subroutine.name}")
-        line = lines[i]
-        
-        splitted_line = line.split('(')
-        if len(splitted_line) > 1:
-            lines[i] = splitted_line[0]
-            lines.insert(i+1, f"({splitted_line[1]}")
-
-            if subroutine.file.strip().endswith('.f'):
-                lines[i] = f"{lines[i]}\n"
-                lines[i+1] = f"     ${lines[i+1]}"
-            if subroutine.file.strip().endswith('.f90'):
-                lines[i] = f"{lines[i]}&\n"
-
-        wrapper = self.prepare_subroutine_wrapper(subroutine)
-        lines.insert(i, wrapper)
-
-
-    def find_subroutines(self, file, lines):
-        subroutines = []
-        i = 0
-        while i < len(lines):
-            line = lines[i]
-            if self.should_wrap(file, lines, i):
-                name = self.get_subroutine_name_from_line(line)
-
-                signature_lines = []
-                signature_lines.append(line)
-                signature = name + line[line.find('('):].replace('&', '').strip()
-                while not signature.endswith(')'):
-                    i += 1
-                    signature += f"{lines[i].replace('&', '').replace('$','').strip()}"
-                    signature_lines.append(lines[i])
-                signature_lines = ''.join(signature_lines)
-
-                args = []
-                args_str = signature.replace(name,'') \
-                    .replace('(', '') \
-                    .replace(')', '') \
-                    .replace('&', '') \
-                    .replace(' ', '')
-                args = args_str.split(',')    
-
-                i += 1
-                declarations_lines = []
-                key_words = get_declaration_key_words()
-                end_of_declarations = False
-                while is_declaration(file,lines,i):
-                    if not is_comment(file, lines[i]):    
-                        declarations_lines.append(lines[i])
-                    i += 1
-
-                declarations_lines = ''.join(declarations_lines)
-                subroutines.append(self.Subroutine(file,name,signature,signature_lines,args,declarations_lines))
-            i += 1
-        return subroutines
-
-
-    def wrap(self):
-        files = prepare_file_list(self.SOURCE_DIR, self.FILES)
-
-        for file in files:
-            lines = []
-            lines = read_file(f"{self.SOURCE_DIR}/{file}")
-
-            subroutines = self.find_subroutines(file, lines)
-            for subroutine in subroutines:
-                print(subroutine, end='')
-                self.wrap_subroutine(lines, subroutine)
-                print('wrapped')
-
-            self.modify_ends(lines, subroutines)
-
-            save_file(f"{self.SOURCE_DIR}/{file}",lines)
-
-        self.modify_stops()
 
 
     def prepare_subroutine_wrapper(self, subroutine):

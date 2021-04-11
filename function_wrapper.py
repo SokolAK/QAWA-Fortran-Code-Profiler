@@ -34,12 +34,25 @@ class Function_wrapper():
             save_file(f"{self.SOURCE_DIR}/{file}", lines)
 
 
-    def find_function(self, file, lines, function):
+    def find_functions(self, file, lines):
+        functions = []
         i = 0
-        while not (self.is_function_start(file, lines[i]) and \
-                function.name == get_procedure_name_from_line(lines[i])):
+        while i < len(lines):
+            line = lines[i]
+            if self.should_wrap(file, lines, i):
+                name = get_procedure_name_from_line(line)
+                functions.append(self.Function(file,name))
             i += 1
-        return i
+        return functions
+
+
+    def should_wrap(self, file, lines, i):
+        line = lines[i]
+        return not is_comment(file, line) and \
+            self.is_function_start(file, line) and \
+            (get_procedure_name_from_line(line) in self.FUNCTIONS or \
+                ('*' in self.FUNCTIONS and f"-{get_procedure_name_from_line(line)}" not in self.FUNCTIONS)) and \
+            not self.is_wrapped_function(lines, i)
 
 
     def wrap_function(self, file, lines, function):
@@ -71,25 +84,12 @@ class Function_wrapper():
             lines.insert(i, self.get_after_fragment(function))
 
 
-    def find_functions(self, file, lines):
-        functions = []
+    def find_function(self, file, lines, function):
         i = 0
-        while i < len(lines):
-            line = lines[i]
-            if self.should_wrap(file, lines, i):
-                name = get_procedure_name_from_line(line)
-                functions.append(self.Function(file,name))
+        while not (self.is_function_start(file, lines[i]) and \
+                function.name == get_procedure_name_from_line(lines[i])):
             i += 1
-        return functions
-
-
-    def should_wrap(self, file, lines, i):
-        line = lines[i]
-        return not is_comment(file, line) and \
-            self.is_function_start(file, line) and \
-            (get_procedure_name_from_line(line) in self.FUNCTIONS or \
-                ('*' in self.FUNCTIONS and f"-{get_procedure_name_from_line(line)}" not in self.FUNCTIONS)) and \
-            not self.is_wrapped_function(lines, i)
+        return i
 
 
     def is_function_start(self, file, line):
