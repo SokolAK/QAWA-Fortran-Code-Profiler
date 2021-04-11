@@ -114,10 +114,13 @@ def get_procedure_name_from_line(line):
         i = line.lower().find('function') + 8
     tab = len(line[i:]) - len(line[i:].lstrip())
     i += tab
-    line = line[i:]
-    iE = line.find('(')
-    return line[:iE]
+    line = line[i:].rstrip()
 
+    if line.endswith('&'):
+        line = line[:-1].rstrip()
+
+    iE = line.find('(')
+    return line[:iE] if iE > 0 else line
     
 def is_f90_format(file):
     return file.lower().rstrip().endswith('.f90')
@@ -136,11 +139,11 @@ def read_file(filename):
 
 
 def generate_wrap_report(SCRIPT_DIR, SOURCE_DIR, SUBROUTINES_FILES, FUNCTIONS_FILES, SUBROUTINES, FUNCTIONS):
-    with open(f"{SCRIPT_DIR}/outs/qawa_wrap_report", 'w') as f:
+    with open(f"{SCRIPT_DIR}outs/qawa_wrap_report", 'w') as f:
 
         files = prepare_file_list(SOURCE_DIR, ['*'])
         for file in files:
-            lines = read_file(f"{SOURCE_DIR}/{file}")
+            lines = read_file(f"{SOURCE_DIR}{file}")
             for i, line in enumerate(lines):
                 typ = '-'
                 wrapped = ''

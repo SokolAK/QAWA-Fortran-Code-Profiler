@@ -5,6 +5,7 @@ from main_wrapper import Main_wrapper
 from report import Report_generator
 from strings import get_banner
 from utils import *
+from test_wrappers import Test_wrappers
 print(get_banner())
 
 # USER SETTINGS
@@ -18,7 +19,7 @@ SUBROUTINES = ['*', '-ints_modify']
 FUNCTIONS_FILES = ['*', '-timing.f90', '-types.f90', '-interpa.f']
 FUNCTIONS = ['*']
 ########################################################################
-SCRIPT_DIR = os.path.dirname(os.path.realpath(__file__))
+SCRIPT_DIR = os.path.dirname(os.path.realpath(__file__))+'/'
 
 
 def help():
@@ -103,6 +104,10 @@ def generate_report():
     report_generator = Report_generator(sys.argv[2])
     report_generator.generate_report()
 
+def test():
+    print("[QAWA] Testing...")
+    os.system('python test_wrappers.py')
+
 
 if len(sys.argv) < 2:
     wrong_usage()
@@ -115,14 +120,15 @@ commands = {
     'make': make,
     #'rebuild': rebuild,
     'restore': restore,
-    'report': generate_report
+    'report': generate_report,
+    'test': test,
     #'rewrap': rewrap
 }
 command = sys.argv[1]
 function = commands.get(command,help)
 
-if not os.path.exists(f"{SCRIPT_DIR}/outs"):
-    os.makedirs(f"{SCRIPT_DIR}/outs")
+if not os.path.exists(f"{SCRIPT_DIR}outs"):
+    os.makedirs(f"{SCRIPT_DIR}outs")
 
 function()
 print("[QAWA] Done")
