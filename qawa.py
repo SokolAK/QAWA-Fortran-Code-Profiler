@@ -1,10 +1,10 @@
 import sys, os
-from qawa_subroutine_wrapper import Subroutine_wrapper
-from qawa_function_wrapper import Function_wrapper
-from qawa_main_wrapper import Main_wrapper
-from qawa_report import Report_generator
-from qawa_strings import get_banner
-from qawa_utils import *
+from subroutine_wrapper import Subroutine_wrapper
+from function_wrapper import Function_wrapper
+from main_wrapper import Main_wrapper
+from report import Report_generator
+from strings import get_banner
+from utils import *
 print(get_banner())
 
 # USER SETTINGS

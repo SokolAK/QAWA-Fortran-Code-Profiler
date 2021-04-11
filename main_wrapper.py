@@ -1,6 +1,6 @@
 import os
-from qawa_utils import *
-from qawa_strings import *
+from utils import *
+from strings import *
 
 class Main_wrapper():
     def __init__(self, SCRIPT_DIR, MAIN_FILE, OUT_FILE):

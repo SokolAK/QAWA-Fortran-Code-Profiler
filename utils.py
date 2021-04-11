@@ -1,6 +1,6 @@
 import os
 from shutil import copy
-from qawa_strings import get_prefix
+from strings import get_prefix
 
 
 def get_declaration_key_words():

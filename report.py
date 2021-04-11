@@ -1,5 +1,5 @@
-from qawa_strings import *
-from qawa_utils import get_separator, read_file
+from strings import *
+from utils import get_separator, read_file
 
 #Column widths
 cw = [24,20,4,6, 14,14,10, 14,14,10]

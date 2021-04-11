@@ -1,7 +1,7 @@
 import os
-from qawa_strings import *
+from strings import *
 from ordered_set import OrderedSet
-from qawa_utils import *
+from utils import *
 import re
 
 class Function_wrapper():
