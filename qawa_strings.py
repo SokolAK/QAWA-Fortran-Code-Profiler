@@ -1,7 +1,7 @@
 def get_banner():
 	return f"""~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
      )))    QAWA* Fortran  
-    C\\_/    Code Profiler 
+    F\\_/    Code Profiler 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 *Quasi-Aspect-Weaving Approach
 """
