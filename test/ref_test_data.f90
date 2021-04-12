@@ -5,10 +5,9 @@ use omp_lib
 use module
 integer :: i 
 
-real :: start, end
-real ( kind = 8 ) :: wtime, wtime2
-wtime = omp_get_wtime()
-call cpu_time(start)
+real ( kind = 8 ) :: cpu_start, cpu_end, wtime_start, wtime_end
+wtime_start = omp_get_wtime()
+call cpu_time(cpu_start)
 
 !$OMP CRITICAL
 open(61,file=&
@@ -17,15 +16,16 @@ open(61,file=&
 qawa.out',&
 action='write',position='append')
 write(61,'(A,I2,A2,I2)')&
-'-> test_data.f90 sub1 S',&
+'-> test_data.f90&
+ sub1 S',&
 OMP_GET_THREAD_NUM()+1, '/', OMP_GET_NUM_THREADS()
 close(61)
 !$OMP END CRITICAL
 
 call qawa_sub1(x, y, z)
 
-call cpu_time(end)
-wtime2 = omp_get_wtime()
+call cpu_time(cpu_end)
+wtime_end = omp_get_wtime()
 
 !$OMP CRITICAL
 open(61,file=&
@@ -34,8 +34,9 @@ open(61,file=&
 qawa.out',&
 action='write',position='append')
 write(61,'(A,2F14.6)')&
-'<- test_data.f90 sub1 S',&
-end-start, wtime2-wtime
+'<- test_data.f90&
+ sub1 S',&
+cpu_end-cpu_start, wtime_end-wtime_start
 close(61)
 !$OMP END CRITICAL
 
@@ -58,10 +59,9 @@ use omp_lib
 use module
 real :: r
 
-real :: start, end
-real ( kind = 8 ) :: wtime, wtime2
-wtime = omp_get_wtime()
-call cpu_time(start)
+real ( kind = 8 ) :: cpu_start, cpu_end, wtime_start, wtime_end
+wtime_start = omp_get_wtime()
+call cpu_time(cpu_start)
 
 !$OMP CRITICAL
 open(61,file=&
@@ -70,7 +70,8 @@ open(61,file=&
 qawa.out',&
 action='write',position='append')
 write(61,'(A,I2,A2,I2)')&
-'-> test_data.f90 sub2 S',&
+'-> test_data.f90&
+ sub2 S',&
 OMP_GET_THREAD_NUM()+1, '/', OMP_GET_NUM_THREADS()
 close(61)
 !$OMP END CRITICAL
@@ -78,8 +79,8 @@ close(61)
 call qawa_sub2 &
 (x, y, z)
 
-call cpu_time(end)
-wtime2 = omp_get_wtime()
+call cpu_time(cpu_end)
+wtime_end = omp_get_wtime()
 
 !$OMP CRITICAL
 open(61,file=&
@@ -88,8 +89,9 @@ open(61,file=&
 qawa.out',&
 action='write',position='append')
 write(61,'(A,2F14.6)')&
-'<- test_data.f90 sub2 S',&
-end-start, wtime2-wtime
+'<- test_data.f90&
+ sub2 S',&
+cpu_end-cpu_start, wtime_end-wtime_start
 close(61)
 !$OMP END CRITICAL
 
@@ -111,10 +113,9 @@ subroutine sub3&
 use omp_lib
 real :: r
 
-real :: start, end
-real ( kind = 8 ) :: wtime, wtime2
-wtime = omp_get_wtime()
-call cpu_time(start)
+real ( kind = 8 ) :: cpu_start, cpu_end, wtime_start, wtime_end
+wtime_start = omp_get_wtime()
+call cpu_time(cpu_start)
 
 !$OMP CRITICAL
 open(61,file=&
@@ -123,7 +124,8 @@ open(61,file=&
 qawa.out',&
 action='write',position='append')
 write(61,'(A,I2,A2,I2)')&
-'-> test_data.f90 sub3 S',&
+'-> test_data.f90&
+ sub3 S',&
 OMP_GET_THREAD_NUM()+1, '/', OMP_GET_NUM_THREADS()
 close(61)
 !$OMP END CRITICAL
@@ -131,8 +133,8 @@ close(61)
 call qawa_sub3&
 (x, y, z)
 
-call cpu_time(end)
-wtime2 = omp_get_wtime()
+call cpu_time(cpu_end)
+wtime_end = omp_get_wtime()
 
 !$OMP CRITICAL
 open(61,file=&
@@ -141,8 +143,9 @@ open(61,file=&
 qawa.out',&
 action='write',position='append')
 write(61,'(A,2F14.6)')&
-'<- test_data.f90 sub3 S',&
-end-start, wtime2-wtime
+'<- test_data.f90&
+ sub3 S',&
+cpu_end-cpu_start, wtime_end-wtime_start
 close(61)
 !$OMP END CRITICAL
 
@@ -167,10 +170,9 @@ integer :: j
 real :: y
 
 !start qawa open_qawa_fun1 ##################################
-real :: start, end
-real ( kind = 8 ) :: wtime, wtime2
-wtime = omp_get_wtime()
-call cpu_time(start)
+real ( kind = 8 ) :: cpu_start, cpu_end, wtime_start, wtime_end
+wtime_start = omp_get_wtime()
+call cpu_time(cpu_start)
 !$OMP CRITICAL
 open(61,file=&
 '/home/adam.sokol/QCHEM/PROFILING/QAWA&
@@ -178,7 +180,8 @@ open(61,file=&
 qawa.out',&
 action='write',position='append')
 write(61,'(A,I2,A2,I2)')&
-'-> test_data.f90 fun1 F',&
+'-> test_data.f90&
+ fun1 F',&
 OMP_GET_THREAD_NUM()+1, '/', OMP_GET_NUM_THREADS()
 close(61)
 !$OMP END CRITICAL
@@ -187,8 +190,8 @@ close(61)
 <some code>
 
 !start qawa close_qawa_fun1 ##################################
-call cpu_time(end)
-wtime2 = omp_get_wtime()
+call cpu_time(cpu_end)
+wtime_end = omp_get_wtime()
 !$OMP CRITICAL
 open(61,file=&
 '/home/adam.sokol/QCHEM/PROFILING/QAWA&
@@ -196,8 +199,9 @@ open(61,file=&
 qawa.out',&
 action='write',position='append')
 write(61,'(A,2F14.6)')&
-'<- test_data.f90 fun1 F',&
-end-start, wtime2-wtime
+'<- test_data.f90&
+ fun1 F',&
+cpu_end-cpu_start, wtime_end-wtime_start
 close(61)
 !$OMP END CRITICAL
 !end qawa  ##################################
@@ -210,10 +214,9 @@ REAL*8 Function fun2(x)
 integer :: j
 
 !start qawa open_qawa_fun2 ##################################
-real :: start, end
-real ( kind = 8 ) :: wtime, wtime2
-wtime = omp_get_wtime()
-call cpu_time(start)
+real ( kind = 8 ) :: cpu_start, cpu_end, wtime_start, wtime_end
+wtime_start = omp_get_wtime()
+call cpu_time(cpu_start)
 !$OMP CRITICAL
 open(61,file=&
 '/home/adam.sokol/QCHEM/PROFILING/QAWA&
@@ -221,7 +224,8 @@ open(61,file=&
 qawa.out',&
 action='write',position='append')
 write(61,'(A,I2,A2,I2)')&
-'-> test_data.f90 fun2 F',&
+'-> test_data.f90&
+ fun2 F',&
 OMP_GET_THREAD_NUM()+1, '/', OMP_GET_NUM_THREADS()
 close(61)
 !$OMP END CRITICAL
@@ -230,8 +234,8 @@ close(61)
 <some code>
 
 !start qawa close_qawa_fun2 ##################################
-call cpu_time(end)
-wtime2 = omp_get_wtime()
+call cpu_time(cpu_end)
+wtime_end = omp_get_wtime()
 !$OMP CRITICAL
 open(61,file=&
 '/home/adam.sokol/QCHEM/PROFILING/QAWA&
@@ -239,8 +243,9 @@ open(61,file=&
 qawa.out',&
 action='write',position='append')
 write(61,'(A,2F14.6)')&
-'<- test_data.f90 fun2 F',&
-end-start, wtime2-wtime
+'<- test_data.f90&
+ fun2 F',&
+cpu_end-cpu_start, wtime_end-wtime_start
 close(61)
 !$OMP END CRITICAL
 !end qawa  ##################################
@@ -248,8 +253,8 @@ close(61)
 Return
 
 !start qawa close_qawa_fun2 ##################################
-call cpu_time(end)
-wtime2 = omp_get_wtime()
+call cpu_time(cpu_end)
+wtime_end = omp_get_wtime()
 !$OMP CRITICAL
 open(61,file=&
 '/home/adam.sokol/QCHEM/PROFILING/QAWA&
@@ -257,8 +262,9 @@ open(61,file=&
 qawa.out',&
 action='write',position='append')
 write(61,'(A,2F14.6)')&
-'<- test_data.f90 fun2 F',&
-end-start, wtime2-wtime
+'<- test_data.f90&
+ fun2 F',&
+cpu_end-cpu_start, wtime_end-wtime_start
 close(61)
 !$OMP END CRITICAL
 !end qawa  ##################################

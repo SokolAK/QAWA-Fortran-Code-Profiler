@@ -102,10 +102,9 @@ class Function_wrapper():
     def get_before_fragment(self, function):
         fragment= f"""
 {get_fragment_header(f"open_{get_prefix()}{function.name}")}
-      real :: start, end
-      real ( kind = 8 ) :: wtime, wtime2
-      wtime = omp_get_wtime()
-      call cpu_time(start)
+      real ( kind = 8 ) :: cpu_start, cpu_end, wtime_start, wtime_end
+      wtime_start = omp_get_wtime()
+      call cpu_time(cpu_start)
       !$OMP CRITICAL
       open(61,file=
      $'{self.SCRIPT_DIR}
@@ -113,7 +112,8 @@ class Function_wrapper():
      ${self.OUT_FILE}',
      $action='write',position='append')
       write(61,'(A,I2,A2,I2)')
-     $'-> {function.file} {function.name} F',
+     $'-> {function.file}
+     $ {function.name} F',
      $OMP_GET_THREAD_NUM()+1, '/', OMP_GET_NUM_THREADS()
       close(61)
       !$OMP END CRITICAL
@@ -129,8 +129,8 @@ class Function_wrapper():
     def get_after_fragment(self, function):
         fragment= f"""
 {get_fragment_header(f"close_{get_prefix()}{function.name}")}
-      call cpu_time(end)
-      wtime2 = omp_get_wtime()
+      call cpu_time(cpu_end)
+      wtime_end = omp_get_wtime()
       !$OMP CRITICAL
       open(61,file=
      $'{self.SCRIPT_DIR}
@@ -138,8 +138,9 @@ class Function_wrapper():
      ${self.OUT_FILE}',
      $action='write',position='append')
       write(61,'(A,2F14.6)')
-     $'<- {function.file} {function.name} F',
-     $end-start, wtime2-wtime
+     $'<- {function.file}
+     $ {function.name} F',
+     $cpu_end-cpu_start, wtime_end-wtime_start
       close(61)
       !$OMP END CRITICAL
 {get_fragment_footer()}

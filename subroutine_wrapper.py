@@ -181,10 +181,9 @@ f"""{get_wrapper_header()}
 {subroutine.signature_lines}
       use omp_lib
 {subroutine.declarations_lines}
-      real :: start, end
-      real ( kind = 8 ) :: wtime, wtime2
-      wtime = omp_get_wtime()
-      call cpu_time(start)
+      real ( kind = 8 ) :: cpu_start, cpu_end, wtime_start, wtime_end
+      wtime_start = omp_get_wtime()
+      call cpu_time(cpu_start)
 
       !$OMP CRITICAL
       open(61,file=
@@ -193,14 +192,15 @@ f"""{get_wrapper_header()}
      ${self.OUT_FILE}',
      $action='write',position='append')
       write(61,'(A,I2,A2,I2)')
-     $'-> {subroutine.file} {subroutine.name} S',
+     $'-> {subroutine.file}
+     $ {subroutine.name} S',
      $OMP_GET_THREAD_NUM()+1, '/', OMP_GET_NUM_THREADS()
       close(61)
       !$OMP END CRITICAL
 
       call {get_prefix()}{subroutine.signature_lines.replace('subroutine','').replace('Subroutine','').replace('SUBROUTINE','').lstrip()}
-      call cpu_time(end)
-      wtime2 = omp_get_wtime()
+      call cpu_time(cpu_end)
+      wtime_end = omp_get_wtime()
     
       !$OMP CRITICAL
       open(61,file=
@@ -209,8 +209,9 @@ f"""{get_wrapper_header()}
      ${self.OUT_FILE}',
      $action='write',position='append')
       write(61,'(A,2F14.6)')
-     $'<- {subroutine.file} {subroutine.name} S',
-     $end-start, wtime2-wtime
+     $'<- {subroutine.file}
+     $ {subroutine.name} S',
+     $cpu_end-cpu_start, wtime_end-wtime_start
       close(61)
       !$OMP END CRITICAL
 
