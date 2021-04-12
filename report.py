@@ -121,8 +121,8 @@ CPU time: {unit_max_s_cl.procedure} [{unit_max_s_cl.file}]: {unit_max_s_cl.cpu_t
         for i in range(1, len(cw), 1):
             table_separator += f"+{get_separator('-',cw[i]+2)}"
         table_header = f"{'NAME':{cw[0]}s} | {'FILE':{cw[1]}s} | {'TYPE':{cw[2]}s} | {'CALLS':>{cw[3]}} | " + \
-            f"{'CPU_TIME':>{cw[4]}s} | {'WALL_TIME':>{cw[5]}s} | {'C/W':>{cw[6]}s} | " + \
-            f"{'SELF_CPU_TIME':>{cw[7]}s} | {'SELF_WALL_TIME':>{cw[8]}s} | {'SELF_C/W':>{cw[9]}s}"
+            f"{'CPU TIME':>{cw[4]}s} | {'WALL TIME':>{cw[5]}s} | {'C/W':>{cw[6]}s} | " + \
+            f"{'SELF CPU TIME':>{cw[7]}s} | {'SELF WALL TIME':>{cw[8]}s} | {'SELF C/W':>{cw[9]}s}"
 
         newline = '\n'
         table = f"""
@@ -157,7 +157,7 @@ CPU time: {unit_max_s_cl.procedure} [{unit_max_s_cl.file}]: {unit_max_s_cl.cpu_t
         print(f"Preparing {file_flow}...")
         with open(file_flow, 'w') as f:
             f.write(f"QAWA FLOW REPORT\n")
-            f.write(f"----------------\n")
+            f.write(f"----------------\n\n")
             tab = '    '
             running_tab = ''
             for line in self.lines:
@@ -173,23 +173,23 @@ CPU time: {unit_max_s_cl.procedure} [{unit_max_s_cl.file}]: {unit_max_s_cl.cpu_t
         file_flow = f"{self.QAWA_OUT}.short_flow"
         print(f"Preparing {file_flow}...")
         lines = read_file(f"{self.QAWA_OUT}.flow")
-        lines = lines [2:]
+        lines = lines [3:]
 
         for n in range(1, int(len(lines)/2+1), 1):
             i = 0
             while i < len(lines) - n:
-                flag = True
+                block_found = True
                 no = 1
                 i0 = i
                 while flag:
                     for j in range(n):
                         if i + j + n > len(lines)-1:
-                            flag = False
+                            block_found = False
                             break
                         if not lines[i+j] == lines[i+j+n]:
-                            flag = False
+                            block_found = False
                             break
-                    if flag == True:
+                    if block_found == True:
                         no += 1
                         del lines[i:i+n]
                     else:
@@ -201,7 +201,7 @@ CPU time: {unit_max_s_cl.procedure} [{unit_max_s_cl.file}]: {unit_max_s_cl.cpu_t
                                 lines[j] = f"{lines[j].rstrip()}{''.join([' ']*(max_length - len(lines[j].rstrip())))}   |\n"
                             lines[i0] = f"{lines[i0].rstrip()}x{no}\n"
 
-        lines.insert(0, f"----------------------\n")
+        lines.insert(0, f"----------------------\n\n")
         lines.insert(0, f"QAWA SHORT FLOW REPORT\n")
         save_file(file_flow,lines)
 
@@ -209,36 +209,43 @@ CPU time: {unit_max_s_cl.procedure} [{unit_max_s_cl.file}]: {unit_max_s_cl.cpu_t
     def prepare_chains_report(self):
         file_chains = f"{self.QAWA_OUT}.chains"
         print(f"Preparing {file_chains}...")
-        lines = read_file(f"{self.QAWA_OUT}")
 
         chains = {}
         chain = []
         previous_procedure = ''
         max_chain_length = 0
-        for line in lines:
+        for line in self.lines:
             procedure_name = line.split()[2]
             if line.lstrip().startswith('->'):
                 chain.append(procedure_name)
-            if line.lstrip().startswith('<-'):
-                if procedure_name == previous_procedure:
-                    chain_string = f"{' -> '.join(chain)}\n"
-                    wtime = float(line.split()[5])
-                    if not chain_string in chains:
-                        chains[chain_string] = {'count':1, 'wtime':wtime}
-                        max_chain_length = max(max_chain_length, len(chain_string.strip()))
-                    else:
-                        chains[chain_string]['count'] += 1
-                        chains[chain_string]['wtime'] += wtime
+                chain_string = f"{' -> '.join(chain)}"
+                if not chain_string in chains:
+                    chains[chain_string] = {'count':0, 'wtime':0, 'ctime':0}
+                    max_chain_length = max(max_chain_length, len(chain_string.strip()))
 
+            if line.lstrip().startswith('<-'):
+                ctime = float(line.split()[4])
+                wtime = float(line.split()[5])
+                chain_string = f"{' -> '.join(chain)}"
+                chains[chain_string]['count'] += 1
+                chains[chain_string]['wtime'] += wtime
+                chains[chain_string]['ctime'] += ctime
                 chain.pop()
+                if len(chain) > 0:
+                    chain_string = f"{' -> '.join(chain)}"
+                    chains[chain_string]['ctime'] -= ctime
+                    chains[chain_string]['wtime'] -= wtime
             previous_procedure = procedure_name
 
         chains = dict(sorted(chains.items(), key=lambda item: item[1]['wtime'], reverse=True))
 
         with open(file_chains, 'w') as f:
             f.write(f"QAWA CHAINS REPORT\n")
-            f.write(f"------------------\n")
-            f.write(f"{'W-TIME [s]':>10s}   {'COUNT':>6s}   {'CHAIN'}\n")  
-            f.write(f"{''.join(['-']*(10 + 3 + 6 + 3 + max_chain_length))}\n")
+            f.write(f"--------------------------------------------------------------\n")
+            f.write(f"* W-TIME = wall time, C-TIME = CPU time, C/W = C-TIME / W-TIME\n")
+            f.write(f"* All times expressed in seconds\n\n")
+            f.write(f"V  DESC.  V\n")
+            f.write(f"{'SELF W-TIME':>11s}  {'SELF C-TIME':>11s}  {'C/W':>6s}  {'COUNT':>6s}  {'CHAIN'}\n")  
+            f.write(f"{''.join(['-']*(11 + 2 + 11 + 2 + 9 + 2 + 6 + 2 + max_chain_length))}\n")
             for name, details in chains.items():
-                f.write(f"{details['wtime']:10.4f}   {details['count']:6d}   {name}")  
+                f.write(f"{details['wtime']:11.4f}  {details['ctime']:11.4f}  {details['ctime']/details['wtime']:6.2f}  {details['count']:6d}  {name}\n")  
