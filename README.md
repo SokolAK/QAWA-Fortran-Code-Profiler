@@ -158,7 +158,7 @@ sapt_mon_ints            | sapt_main.f90        |  S   |      2 |        31.1881
 ```
 
 # Requirements
-* Python 3.6 or higher
+* [Python 3.6 (or higher)](https://www.python.org/downloads/)
 
 # Status
 _in progress_
