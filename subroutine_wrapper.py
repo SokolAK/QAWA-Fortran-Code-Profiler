@@ -1,6 +1,5 @@
 import os
 from strings import *
-from ordered_set import OrderedSet
 from utils import *
 import re
 

@@ -1,5 +1,5 @@
 from strings import *
-from utils import get_separator, read_file
+from utils import get_separator, read_file, save_file
 
 #Column widths
 cw = [24,20,4,6, 14,14,10, 14,14,10]
@@ -21,12 +21,10 @@ class Report_generator():
             self.no_calls = 1
             self.self_cpu_time = 0.0
             self.self_wall_time = 0.0
-
         def __eq__(self, other):
             if isinstance(other, Report_generator.Unit):
                 return self.file == other.file and self.procedure == other.procedure
             return False
-
         def __str__(self):
             return f"{self.procedure:{cw[0]}s} | {self.file:{cw[1]}s} | " + \
                 f"{self.typ:^{cw[2]}s} | " + \
@@ -35,11 +33,18 @@ class Report_generator():
                 f"{self.cpu_time/self.wall_time:{cw[6]}.2f} | " + \
                 f"{self.self_cpu_time:{cw[7]}.4f} | {self.self_wall_time:{cw[8]}.4f} | " + \
                 f"{self.self_cpu_time/self.self_wall_time if self.self_wall_time else 0:{cw[9]}.2f}"
-
         def add(self, other):
             self.cpu_time += other.cpu_time
             self.wall_time += other.wall_time
             self.no_calls += 1
+
+
+    def generate_report(self):
+        self.lines = read_file(self.QAWA_OUT)
+        self.prepare_flow_report()
+        self.prepare_short_flow_report()
+        self.prepare_times_report()
+        self.prepare_chains_report()
 
 
     def prepare_units(self):
@@ -167,9 +172,7 @@ CPU time: {unit_max_s_cl.procedure} [{unit_max_s_cl.file}]: {unit_max_s_cl.cpu_t
     def prepare_short_flow_report(self):
         file_flow = f"{self.QAWA_OUT}.short_flow"
         print(f"Preparing {file_flow}...")
-        lines = []
-        with open(f"{self.QAWA_OUT}.flow", 'r') as f:
-            lines = f.readlines()
+        lines = read_file(f"{self.QAWA_OUT}.flow")
         lines = lines [2:]
 
         for n in range(1, int(len(lines)/2+1), 1):
@@ -198,15 +201,44 @@ CPU time: {unit_max_s_cl.procedure} [{unit_max_s_cl.file}]: {unit_max_s_cl.cpu_t
                                 lines[j] = f"{lines[j].rstrip()}{''.join([' ']*(max_length - len(lines[j].rstrip())))}   |\n"
                             lines[i0] = f"{lines[i0].rstrip()}x{no}\n"
 
-        with open(file_flow, 'w') as f:
-            f.write(f"QAWA SHORT FLOW REPORT\n")
-            f.write(f"----------------------\n")
-            for line in lines:
-                f.write(line)
+        lines.insert(0, f"----------------------\n")
+        lines.insert(0, f"QAWA SHORT FLOW REPORT\n")
+        save_file(file_flow,lines)
 
 
-    def generate_report(self):
-        self.lines = read_file(self.QAWA_OUT)
-        self.prepare_flow_report()
-        self.prepare_short_flow_report()
-        self.prepare_times_report()
+    def prepare_chains_report(self):
+        file_chains = f"{self.QAWA_OUT}.chains"
+        print(f"Preparing {file_chains}...")
+        lines = read_file(f"{self.QAWA_OUT}")
+
+        chains = {}
+        chain = []
+        previous_procedure = ''
+        max_chain_length = 0
+        for line in lines:
+            procedure_name = line.split()[2]
+            if line.lstrip().startswith('->'):
+                chain.append(procedure_name)
+            if line.lstrip().startswith('<-'):
+                if procedure_name == previous_procedure:
+                    chain_string = f"{' -> '.join(chain)}\n"
+                    wtime = float(line.split()[5])
+                    if not chain_string in chains:
+                        chains[chain_string] = {'count':1, 'wtime':wtime}
+                        max_chain_length = max(max_chain_length, len(chain_string.strip()))
+                    else:
+                        chains[chain_string]['count'] += 1
+                        chains[chain_string]['wtime'] += wtime
+
+                chain.pop()
+            previous_procedure = procedure_name
+
+        chains = dict(sorted(chains.items(), key=lambda item: item[1]['wtime'], reverse=True))
+
+        with open(file_chains, 'w') as f:
+            f.write(f"QAWA CHAINS REPORT\n")
+            f.write(f"------------------\n")
+            f.write(f"{'W-TIME [s]':>10s}   {'COUNT':>6s}   {'CHAIN'}\n")  
+            f.write(f"{''.join(['-']*(10 + 3 + 6 + 3 + max_chain_length))}\n")
+            for name, details in chains.items():
+                f.write(f"{details['wtime']:10.4f}   {details['count']:6d}   {name}")  
