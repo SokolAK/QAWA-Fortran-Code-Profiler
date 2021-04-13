@@ -15,10 +15,10 @@ open(61,file=&
 /outs/&
 qawa.out',&
 action='write',position='append')
-write(61,'(A,I2,A2,I2)')&
-'-> test_data.f90&
- sub1 S',&
-OMP_GET_THREAD_NUM()+1, '/', OMP_GET_NUM_THREADS()
+write(61,'(A,I2,I2)')&
+'-> test_data.f90 &
+sub1 S',&
+OMP_GET_THREAD_NUM()+1, OMP_GET_NUM_THREADS()
 close(61)
 !$OMP END CRITICAL
 
@@ -34,8 +34,8 @@ open(61,file=&
 qawa.out',&
 action='write',position='append')
 write(61,'(A,2F14.6)')&
-'<- test_data.f90&
- sub1 S',&
+'<- test_data.f90 &
+sub1 S',&
 cpu_end-cpu_start, wtime_end-wtime_start
 close(61)
 !$OMP END CRITICAL
@@ -69,10 +69,10 @@ open(61,file=&
 /outs/&
 qawa.out',&
 action='write',position='append')
-write(61,'(A,I2,A2,I2)')&
-'-> test_data.f90&
- sub2 S',&
-OMP_GET_THREAD_NUM()+1, '/', OMP_GET_NUM_THREADS()
+write(61,'(A,I2,I2)')&
+'-> test_data.f90 &
+sub2 S',&
+OMP_GET_THREAD_NUM()+1, OMP_GET_NUM_THREADS()
 close(61)
 !$OMP END CRITICAL
 
@@ -89,8 +89,8 @@ open(61,file=&
 qawa.out',&
 action='write',position='append')
 write(61,'(A,2F14.6)')&
-'<- test_data.f90&
- sub2 S',&
+'<- test_data.f90 &
+sub2 S',&
 cpu_end-cpu_start, wtime_end-wtime_start
 close(61)
 !$OMP END CRITICAL
@@ -123,10 +123,10 @@ open(61,file=&
 /outs/&
 qawa.out',&
 action='write',position='append')
-write(61,'(A,I2,A2,I2)')&
-'-> test_data.f90&
- sub3 S',&
-OMP_GET_THREAD_NUM()+1, '/', OMP_GET_NUM_THREADS()
+write(61,'(A,I2,I2)')&
+'-> test_data.f90 &
+sub3 S',&
+OMP_GET_THREAD_NUM()+1, OMP_GET_NUM_THREADS()
 close(61)
 !$OMP END CRITICAL
 
@@ -143,8 +143,8 @@ open(61,file=&
 qawa.out',&
 action='write',position='append')
 write(61,'(A,2F14.6)')&
-'<- test_data.f90&
- sub3 S',&
+'<- test_data.f90 &
+sub3 S',&
 cpu_end-cpu_start, wtime_end-wtime_start
 close(61)
 !$OMP END CRITICAL
@@ -179,10 +179,10 @@ open(61,file=&
 /outs/&
 qawa.out',&
 action='write',position='append')
-write(61,'(A,I2,A2,I2)')&
-'-> test_data.f90&
- fun1 F',&
-OMP_GET_THREAD_NUM()+1, '/', OMP_GET_NUM_THREADS()
+write(61,'(A,I2,I2)')&
+'-> test_data.f90 &
+fun1 F',&
+OMP_GET_THREAD_NUM()+1, OMP_GET_NUM_THREADS()
 close(61)
 !$OMP END CRITICAL
 !end qawa  ##################################
@@ -199,8 +199,8 @@ open(61,file=&
 qawa.out',&
 action='write',position='append')
 write(61,'(A,2F14.6)')&
-'<- test_data.f90&
- fun1 F',&
+'<- test_data.f90 &
+fun1 F',&
 cpu_end-cpu_start, wtime_end-wtime_start
 close(61)
 !$OMP END CRITICAL
@@ -223,10 +223,10 @@ open(61,file=&
 /outs/&
 qawa.out',&
 action='write',position='append')
-write(61,'(A,I2,A2,I2)')&
-'-> test_data.f90&
- fun2 F',&
-OMP_GET_THREAD_NUM()+1, '/', OMP_GET_NUM_THREADS()
+write(61,'(A,I2,I2)')&
+'-> test_data.f90 &
+fun2 F',&
+OMP_GET_THREAD_NUM()+1, OMP_GET_NUM_THREADS()
 close(61)
 !$OMP END CRITICAL
 !end qawa  ##################################
@@ -243,8 +243,8 @@ open(61,file=&
 qawa.out',&
 action='write',position='append')
 write(61,'(A,2F14.6)')&
-'<- test_data.f90&
- fun2 F',&
+'<- test_data.f90 &
+fun2 F',&
 cpu_end-cpu_start, wtime_end-wtime_start
 close(61)
 !$OMP END CRITICAL
@@ -262,8 +262,8 @@ open(61,file=&
 qawa.out',&
 action='write',position='append')
 write(61,'(A,2F14.6)')&
-'<- test_data.f90&
- fun2 F',&
+'<- test_data.f90 &
+fun2 F',&
 cpu_end-cpu_start, wtime_end-wtime_start
 close(61)
 !$OMP END CRITICAL

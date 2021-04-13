@@ -10,17 +10,19 @@ class Report_generator():
         #self.REPORT_OUT = 'qawa.report'
         self.lines = []
         self.units = []
+        self.overhead = 0
 
     class Unit:
         def __init__(self, file, procedure, typ, cpu_time=0, wall_time=0):
             self.file = file
             self.procedure = procedure
             self.typ = typ
-            self.cpu_time = float(cpu_time)
-            self.wall_time = float(wall_time)
+            self.cpu_time = cpu_time
+            self.wall_time = wall_time
             self.no_calls = 1
             self.self_cpu_time = 0.0
             self.self_wall_time = 0.0
+            self.overhead = 0
         def __eq__(self, other):
             if isinstance(other, Report_generator.Unit):
                 return self.file == other.file and self.procedure == other.procedure
@@ -41,20 +43,43 @@ class Report_generator():
 
     def generate_report(self):
         self.lines = read_file(self.QAWA_OUT)
+        self.calculate_overhead()
+        print(self.overhead)
         self.prepare_flow_report()
         self.prepare_short_flow_report()
         self.prepare_times_report()
         self.prepare_chains_report()
 
 
+    def unpack_line(self, line):
+        if line.startswith('->'):
+            direction, file, procedure, typ, thread, no_threads  = line.split()
+            return file, procedure, typ, int(thread), int(no_threads)
+        else:
+            direction, file, procedure, typ, cpu_time, wall_time = line.split()
+            cpu_time, wall_time = float(cpu_time), float(wall_time)
+            m = cpu_time / wall_time if wall_time > 0 else 1
+            wall_time -= self.overhead
+            cpu_time = wall_time * m
+            return file, procedure, typ, cpu_time, wall_time
+
+
+    def calculate_overhead(self):
+        self.overhead = 0.00162
+        for line in self.lines:
+            if line.startswith('<-'):
+                self.overhead = min(self.overhead, float(line.split()[-1]))
+        return self.overhead
+
+
     def prepare_units(self):
         self.units = []
         for line in self.lines:
             if line.lstrip().startswith('<-'):
-                line = line.replace('<-', '')
-                file, procedure, typ, cpu_time, wall_time = line.split()
-                cpu_time = cpu_time
-                wall_time = wall_time
+                #line = line.replace('<-', '')
+                file, procedure, typ, cpu_time, wall_time = self.unpack_line(line)
+                #cpu_time = float(cpu_time) - self.calculate_overhead()
+                #wall_time = float(wall_time) - self.calculate_overhead()
                 unit = self.Unit(file, procedure, typ, cpu_time, wall_time)
                 if unit in self.units:
                     next(u for u in self.units if u == unit).add(unit)
@@ -75,8 +100,7 @@ class Report_generator():
                     stack.append(unit)
 
                 if line.lstrip().startswith('<-'):
-                    cpu_time = float(line.split()[4])
-                    wall_time = float(line.split()[5])
+                    file, procedure, typ, cpu_time, wall_time = self.unpack_line(line)
                     stack[-1].self_cpu_time += cpu_time
                     stack[-1].self_wall_time += wall_time
 
@@ -181,7 +205,7 @@ CPU time: {unit_max_s_cl.procedure} [{unit_max_s_cl.file}]: {unit_max_s_cl.cpu_t
                 block_found = True
                 no = 1
                 i0 = i
-                while flag:
+                while block_found:
                     for j in range(n):
                         if i + j + n > len(lines)-1:
                             block_found = False
@@ -224,8 +248,7 @@ CPU time: {unit_max_s_cl.procedure} [{unit_max_s_cl.file}]: {unit_max_s_cl.cpu_t
                     max_chain_length = max(max_chain_length, len(chain_string.strip()))
 
             if line.lstrip().startswith('<-'):
-                ctime = float(line.split()[4])
-                wtime = float(line.split()[5])
+                file, procedure_name, typ, ctime, wtime = self.unpack_line(line)
                 chain_string = f"{' -> '.join(chain)}"
                 chains[chain_string]['count'] += 1
                 chains[chain_string]['wtime'] += wtime
@@ -248,4 +271,6 @@ CPU time: {unit_max_s_cl.procedure} [{unit_max_s_cl.file}]: {unit_max_s_cl.cpu_t
             f.write(f"{'SELF W-TIME':>11s}  {'SELF C-TIME':>11s}  {'C/W':>6s}  {'COUNT':>6s}  {'CHAIN'}\n")  
             f.write(f"{''.join(['-']*(11 + 2 + 11 + 2 + 9 + 2 + 6 + 2 + max_chain_length))}\n")
             for name, details in chains.items():
-                f.write(f"{details['wtime']:11.4f}  {details['ctime']:11.4f}  {details['ctime']/details['wtime']:6.2f}  {details['count']:6d}  {name}\n")  
+                f.write(f"{details['wtime']:11.4f}  {details['ctime']:11.4f}  ")
+                f.write(f"{details['ctime']/details['wtime'] if details['wtime'] > 0 else 0:6.2f}  ")
+                f.write(f"{details['count']:6d}  {name}\n")  

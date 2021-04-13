@@ -21,10 +21,10 @@ C
      $/outs/
      $qawa.out',
      $action='write')
-      write(61,'(A,I2,A2,I2)') '-> 
-     $test_main.f
-     $ MAIN M',
-     $OMP_GET_THREAD_NUM()+1, '/', OMP_GET_NUM_THREADS()
+      write(61,'(A,I2,I2)') '-> 
+     $test_main.f 
+     $MAIN M',
+     $OMP_GET_THREAD_NUM()+1, OMP_GET_NUM_THREADS()
       close(61)
       !$OMP END CRITICAL
       !end qawa  ##################################
@@ -43,8 +43,8 @@ C
      $qawa.out',
      $action='write',position='append')
       write(61,'(A,2F14.6)') '<- 
-     $test_main.f
-     $ MAIN M',
+     $test_main.f 
+     $MAIN M',
      $cpu_end-cpu_start, wtime_end-wtime_start
       close(61)
       !$OMP END CRITICAL

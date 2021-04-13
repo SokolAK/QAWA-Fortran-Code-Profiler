@@ -61,10 +61,10 @@ class Main_wrapper():
      $/outs/
      ${self.OUT_FILE}',
      $action='write')
-      write(61,'(A,I2,A2,I2)') '-> 
-     ${self.MAIN_FILE_NAME}
-     $ MAIN M',
-     $OMP_GET_THREAD_NUM()+1, '/', OMP_GET_NUM_THREADS()
+      write(61,'(A,I2,I2)') '-> 
+     ${self.MAIN_FILE_NAME} 
+     $MAIN M',
+     $OMP_GET_THREAD_NUM()+1, OMP_GET_NUM_THREADS()
       close(61)
       !$OMP END CRITICAL
       {get_fragment_footer()}
@@ -90,8 +90,8 @@ class Main_wrapper():
      ${self.OUT_FILE}',
      $action='write',position='append')
       write(61,'(A,2F14.6)') '<- 
-     ${self.MAIN_FILE_NAME}
-     $ MAIN M',
+     ${self.MAIN_FILE_NAME} 
+     $MAIN M',
      $cpu_end-cpu_start, wtime_end-wtime_start
       close(61)
       !$OMP END CRITICAL

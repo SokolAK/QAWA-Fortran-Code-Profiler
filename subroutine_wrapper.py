@@ -191,10 +191,10 @@ f"""{get_wrapper_header()}
      $/outs/
      ${self.OUT_FILE}',
      $action='write',position='append')
-      write(61,'(A,I2,A2,I2)')
-     $'-> {subroutine.file}
-     $ {subroutine.name} S',
-     $OMP_GET_THREAD_NUM()+1, '/', OMP_GET_NUM_THREADS()
+      write(61,'(A,I2,I2)')
+     $'-> {subroutine.file} 
+     ${subroutine.name} S',
+     $OMP_GET_THREAD_NUM()+1, OMP_GET_NUM_THREADS()
       close(61)
       !$OMP END CRITICAL
 
@@ -209,8 +209,8 @@ f"""{get_wrapper_header()}
      ${self.OUT_FILE}',
      $action='write',position='append')
       write(61,'(A,2F14.6)')
-     $'<- {subroutine.file}
-     $ {subroutine.name} S',
+     $'<- {subroutine.file} 
+     ${subroutine.name} S',
      $cpu_end-cpu_start, wtime_end-wtime_start
       close(61)
       !$OMP END CRITICAL

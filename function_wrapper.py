@@ -111,10 +111,10 @@ class Function_wrapper():
      $/outs/
      ${self.OUT_FILE}',
      $action='write',position='append')
-      write(61,'(A,I2,A2,I2)')
-     $'-> {function.file}
-     $ {function.name} F',
-     $OMP_GET_THREAD_NUM()+1, '/', OMP_GET_NUM_THREADS()
+      write(61,'(A,I2,I2)')
+     $'-> {function.file} 
+     ${function.name} F',
+     $OMP_GET_THREAD_NUM()+1, OMP_GET_NUM_THREADS()
       close(61)
       !$OMP END CRITICAL
 {get_fragment_footer()}
@@ -138,8 +138,8 @@ class Function_wrapper():
      ${self.OUT_FILE}',
      $action='write',position='append')
       write(61,'(A,2F14.6)')
-     $'<- {function.file}
-     $ {function.name} F',
+     $'<- {function.file} 
+     ${function.name} F',
      $cpu_end-cpu_start, wtime_end-wtime_start
       close(61)
       !$OMP END CRITICAL
