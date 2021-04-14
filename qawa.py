@@ -6,43 +6,45 @@ from report import Report_generator
 from strings import get_banner
 from utils import *
 from test_wrappers import Test_wrappers
+from config import *
 print(get_banner())
 
-# USER SETTINGS
-########################################################################
-PROJECT_DIR = '/home/adam.sokol/QCHEM/GAMMCOR_GitLab/'
-MAKEFILE = PROJECT_DIR + 'Makefile'
-SOURCE_DIR = PROJECT_DIR + 'SOURCE/'
-MAIN_FILE = SOURCE_DIR + 'mainp.f'
-SUBROUTINES_FILES = ['*', '-sorter.f90', '-tran.f90', '-timing.f90']
-SUBROUTINES = ['*', '-ints_modify']
-FUNCTIONS_FILES = ['*', '-timing.f90', '-types.f90', '-interpa.f']
-FUNCTIONS = ['*']
-########################################################################
 SCRIPT_DIR = os.path.dirname(os.path.realpath(__file__))+'/'
-
 
 def help():
     print("[QAWA] Help")
     print()
-    print(f"""Usage: qawa <command>\n
-List of commands:
-    wrap [out]    --  add profiling wrappers to files listed in qawa.py. 
-                      Profiling data will be saved to [out] file located in <QAWA_DIR>/outs/.
-                      If no [out] is passed, the output filename is set to 'qawa.out'.
-    make          --  build wrapped project
-    build [out]   --  wrap [out] + make
-    unwrap        --  remove profiling wrappers from all files in SOURCE_DIR specified in qawa.py
-    restore       --  unwrap + make
-    report <out>  --  generate reports based on the given <out> file
-    """)
+    print(f"Usage: run shell script './qawa <command>' or python script 'python qawa.py <command>'")
+    print()
+    print(f"List of commands:")
+    print(f"wrap [out] ...... add profiling wrappers to files listed in qawa.py.")
+    print(f"                  Profiling data will be saved to [out] file located in <QAWA_DIR>/outs/.")
+    print(f"                  If no [out] is passed, the output filename is set to 'qawa.out'.")
+    #print(f"make -j [N] ............ build wrapped project with N jobs (8 by default)")
+    #print(f"build -o [out] -j [N] .. wrap [out] + make with N jobs (8 by default)")
+    print(f"unwrap .......... remove profiling wrappers from all files in SOURCE_DIR specified in qawa.py")
+    #print(f"restore -j [N].......... unwrap + make with N jobs (8 by default)")
+    print(f"report <out> .... generate reports based on the given <out> file")
+    print()
 
 def wrong_usage():
+    #print("\n[QAWA] *** ERROR: Wrong usage! See the instruction below *** \n")
     help()
-    print("[QAWA] Done")
-    exit()
+    #print("[QAWA] Done")
+    sys.exit()
+
+# def find_flag_value(symbol, default):
+#     try:
+#         id = sys.argv.index(symbol)
+#     except:
+#         return default
+#     try:
+#         return type(default)(sys.argv[id+1])
+#     except:
+#         wrong_usage()
 
 def wrap():
+    #OUT_FILE = find_flag_value('-o', 'qawa.out')
     OUT_FILE = sys.argv[2] if len(sys.argv) > 2 else 'qawa.out'
     unwrap()
 
@@ -73,30 +75,31 @@ def unwrap():
     print("[QAWA] Unwrapping...")
     unwrap_dir(SOURCE_DIR)
 
-def rewrap():
-    unwrap()
-    wrap()
+# def rewrap():
+#     unwrap()
+#     wrap()
 
-def make(clean=False):
-    print("[QAWA] Building executable...")
-    os.chdir(os.path.dirname(MAKEFILE))
-    if clean:
-        os.system("make clean")
-    os.system("make -j 4")
+# def make(N=8, clean=False):
+#     print("[QAWA] Building executable...")
+#     N = find_flag_value('-j', 8)
+#     os.chdir(os.path.dirname(MAKEFILE))
+#     if clean:
+#         os.system("make clean")
+#     os.system(f"make -j {N}")
 
-def build():
-    wrap()
-    make()
+# def build():
+#     wrap()
+#     make()
 
-def rebuild():
-    unwrap()
-    build()
+# def rebuild():
+#     unwrap()
+#     build()
 
-def restore():
-    unwrap()
-    make(clean=True)
+# def restore():
+#     unwrap()
+#     make(clean=True)
 
-def generate_report():
+def report():
     if len(sys.argv) < 3:
         wrong_usage()
 
@@ -116,11 +119,11 @@ commands = {
     'help': help,
     'wrap': wrap,
     'unwrap': unwrap,
-    'build': build,
-    'make': make,
+    #'build': build,
+    #'make': make,
     #'rebuild': rebuild,
-    'restore': restore,
-    'report': generate_report,
+    #'restore': restore,
+    'report': report,
     'test': test,
     #'rewrap': rewrap
 }
@@ -132,5 +135,3 @@ if not os.path.exists(f"{SCRIPT_DIR}outs"):
 
 function()
 print("[QAWA] Done")
-
-

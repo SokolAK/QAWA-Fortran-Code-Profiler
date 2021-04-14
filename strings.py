@@ -1,9 +1,7 @@
 def get_banner():
-	return f"""~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-     )))    QAWA* Fortran  
-    F\\_/    Code Profiler 
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-*Quasi-Aspect-Weaving Approach
+	return f"""~~~ ))) ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   F\_/  QAWA Fortran-Code-Profiler
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 """
 
 def get_wrapper_header():
