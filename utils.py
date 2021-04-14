@@ -64,8 +64,10 @@ def make_copy(org_name):
 
 def unwrap_file(copy_name):
     org_name = copy_name.replace('.qawa_copy', '')
-    os.remove(org_name)
-    os.rename(copy_name, org_name)
+    if os.path.isfile(org_name):
+        os.remove(org_name)
+    if os.path.isfile(copy_name):
+        os.rename(copy_name, org_name)
 
 
 def unwrap_dir(SOURCE_DIR):
