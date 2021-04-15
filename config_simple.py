@@ -1,12 +1,11 @@
 # QAWA CONFIGURATION
 ########################################################################
-SOURCE_DIR = '/home/adam.sokol/QCHEM/GAMMCOR_GitLab/SOURCE/'
-MAIN_FILE = SOURCE_DIR + 'mainp.f'
-SUBROUTINES_FILES = ['*', '-timing.f90']
-SUBROUTINES = ['*', '-add_to_Sorter', '-dump_Batch', '-get_from_Sorter', \
-                '-triang_to_sq2', '-triang_to_sq', '-ints_modify']
-FUNCTIONS_FILES = ['*']
-FUNCTIONS = ['*','-FRDM2']
+SOURCE_DIR =        '/home/my_project/source/'
+MAIN_FILE =         SOURCE_DIR + 'main.f'
+SUBROUTINES_FILES = ['*']
+SUBROUTINES =       ['-excluded_subroutine']
+FUNCTIONS_FILES =   ['functions.f90']
+FUNCTIONS =         ['included_function_1', 'included_function_2']
 ########################################################################
 #
 # HELP
