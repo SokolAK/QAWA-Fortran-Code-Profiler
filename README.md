@@ -1,19 +1,16 @@
 # &nbsp; ))) <br/> F\\_/&nbsp; QAWA Fortran-Code-Profiler
+QAWA Fortran-Code-Profiler (or just QAWA) is a Python-based framework for profiling Fortran source code. You can use it to track the control flow, show call chains and measure the execution time of your procedures.
 
-QAWA Fortran-Code-Profiler is a Python-based framework for profiling Fortran source code. You can use it to track the control flow, show call chains and measure the execution time of your procedures.
-
-# :bulb: Idea
+# 💡 Idea
 QAWA wraps Fortran subroutines in source files with special code designed to monitor control flow and measure execution time. The following examples illustrate the idea.
 
-* ### Original subroutine:
+### &nbsp; &nbsp; 💎 Original subroutine:
 ```
 subroutine sssss(x, y, z)
     <<< original code >>>
 end subroutine sssss
 ```
-
-* ### Wrapped subroutine:
-
+### &nbsp; &nbsp; 🎁 Wrapped subroutine:
 ```
 subroutine sssss(x, y, z)
     <<< qawa profiling code >>>
@@ -26,16 +23,14 @@ subroutine qawa_sssss(x, y, z)
     <<< original code >>>
 end subroutine qawa_sssss
 ```
-* ### Original function:
+### &nbsp; &nbsp; 💎 Original function:
 ```
 function fffff(x, y) result(z)
     <<< original code >>>
 return
 end
 ```
-
-* ### Modified function:
-
+### &nbsp; &nbsp; 🎁 Modified function:
 ```
 function fffff(x, y) result(z)
     <<< qawa profiling code >>>
@@ -45,10 +40,10 @@ return
 end
 ```
 
-# :blue_book: Manual
-
-## :wrench: Configuration
-Set the path to your source files and list the procedures you want to profile in the `QAWA/config.py`:
+# 📘 Manual
+## 🔧 Configuration
+Prepare a configuration file based on `QAWA/config_sample.py`.<br/>
+You should set the path to your source files and list the procedures you want to profile.
 ```
 # QAWA CONFIGURATION
 ########################################################################
@@ -57,7 +52,7 @@ MAIN_FILE =         SOURCE_DIR + 'main.f'
 SUBROUTINES_FILES = ['*']
 SUBROUTINES =       ['-excluded_subroutine']
 FUNCTIONS_FILES =   ['functions.f90']
-SUBROUTINES_FILES = ['included_function_1', 'included_function_2']
+FUNCTIONS =         ['included_function_1', 'included_function_2']
 ########################################################################
 #
 # HELP
@@ -77,9 +72,9 @@ SUBROUTINES_FILES = ['included_function_1', 'included_function_2']
 #            SUBROUTINES_FILES/FUNCTIONS_FILES to the wrapping list
 ```
 
-## :arrow_forward: Usage
-Run QAWA with the bash script: `./qawa <command>` or the python script: `python qawa.py <command>`.<br/>
-Run without a `<command>` to open `help`.
+## 🏃 Run
+Launch QAWA with the bash script: `./qawa <command>` or the python script: `python qawa.py <command>`.<br/>
+Do not pass any `<command>` to display `help`.
 
 ```
 ~~~ ))) ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -91,15 +86,16 @@ Run without a `<command>` to open `help`.
 Usage: run shell script './qawa <command>' or python script 'python qawa.py <command>'
 
 List of commands:
-wrap [out] ...... add profiling wrappers to files listed in config.py.
-                  Profiling data will be saved to [out] file located in <QAWA_DIR>/outs/.
-                  If no [out] is passed, the output filename is set to 'qawa.out'.
-unwrap .......... restore the original version of the source files from before the wrapping process
-report <out> .... generate reports based on the given <out> file
+wrap <config.py> -o [out] .... Add profiling wrappers to files listed in <config.py>.
+                               Profiling data will be saved to [out] file located in <QAWA_DIR>/outs/.
+                               If no [out] is passed, the output filename is set to 'qawa.out'.
+unwrap <config.py> ........... Restore the original version of the source files listed in <config.py>
+                               from before the wrapping process.
+report <out> ................. Generate reports based on the given <out> file.
 ```
 
-## :recycle: Typical workflow
-### :chart_with_upwards_trend: Wrapping and profiling your project
+## ♻️ Typical workflow
+### &nbsp; &nbsp; 📈 Wrapping and profiling your project:
 ```
 qawa wrap (1) ->
 -> check wrap report (2) ->
@@ -107,27 +103,25 @@ qawa wrap (1) ->
 -> run the executable ->
 -> qawa report (3)
 ```
-(1) before wrapping QAWA automatically creates a copy of your source files<br/>
-&nbsp;&nbsp;&nbsp;&nbsp; (backup files have the `.qawa_copy` extension).<br/>
-(2) wrap report is saved in the `QAWA/outs/qawa_wrap_report` file.<br/>
-&nbsp;&nbsp;&nbsp;&nbsp; It shows which procedures have been actually wrapped. This step is optional<br/>
-(3) after the executable has finished running
+1. Before wrapping QAWA automatically creates a copy of your source files (backup files have the `.qawa_copy` extension).
+2. Wrap report is saved in the `QAWA/outs/qawa_wrap_report` file. It shows which procedures have been actually wrapped. This step is optional.
+3. Run `qawa report` after the executable has finished running.
 
-### :back: Removing QAWA from your project
+### &nbsp; &nbsp; 🔙 Removing QAWA from your project:
 ```
 qawa unwrap (1) -> rebuild your project
 ```
-(1) `unwrap` restore the original version of your source from `.qawa_copy` files
+1. `unwrap` restore the original version of your source from `.qawa_copy` files
 
-## :page_facing_up: Reports
+## 📋 Reports
 The `report <out>` command generate the following text formatted reports based on the `<out>` file:
 - control flow report: `<out>.flow`
 - short control flow report with rolled loops: `<out>.short_flow`
 - procedures execution times report: `<out>.times`
 - call chains report with execution times: `<out>.chains`
 
-### Examples
-* #### `<out>.short_flow`:
+### &nbsp;&nbsp; 📄 Examples
+##### &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; 🌊`<out>.short_flow`:
 ```
 QAWA SHORT FLOW REPORT
 ----------------------
@@ -170,7 +164,7 @@ MAIN
             prepare_RDM2val
 [...]
 ```
-* #### `<out>.times`:
+##### &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; ⏱️ `<out>.times`:
 ```
 QAWA TIMES REPORT
 --------------------------------
@@ -212,7 +206,7 @@ sapt_mon_ints            | sapt_main.f90        |  S   |      2 |        31.1881
 [...]
 ```
 
-* #### `<out>.chains`:
+##### &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; ⛓️ `<out>.chains`:
 ```
 QAWA CHAINS REPORT
 --------------------------------------------------------------
@@ -239,9 +233,8 @@ SELF W-TIME  SELF C-TIME     C/W   COUNT  CHAIN
 [...]
 ```
 
+## 📜 Requirements
+&nbsp; &nbsp; &nbsp; &nbsp; 🐍 [Python 3.6 (or higher)](https://www.python.org/downloads/)
 
-# Requirements
-* [Python 3.6 (or higher)](https://www.python.org/downloads/)
-
-# Status
+## 🚦 Status
 _in progress_
