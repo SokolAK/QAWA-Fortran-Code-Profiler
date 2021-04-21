@@ -45,7 +45,8 @@ def convert_text_block_from_f77_to_f90(text_block):
     for i, line in enumerate(text_lines):
         line = line.lstrip() 
         if line.startswith('$') or line.startswith('&'):
-            text_lines[i] = line[1:]
+            text_lines[i] = line.replace('$','&')
+            #text_lines[i] = line[1:]
             text_lines[i-1] = f"{text_lines[i-1]}&"
 
     text_block = '\n'.join(text_lines)
@@ -128,8 +129,10 @@ def is_f90_format(file):
     return file.lower().rstrip().endswith('.f90')
 
 
-def save_file(file, lines):
-    with open(file, 'w') as f:
+def save_file(file, lines, header=[], mode='w'):
+    with open(file, mode) as f:
+        for line in header:
+            f.write(line)
         for line in lines:
             f.write(line)  
 
@@ -138,6 +141,25 @@ def read_file(filename):
     with open(filename, 'r') as f:
         lines = f.readlines()
     return lines
+
+
+def get_substring_symbol(string, symbol, order, dire):
+    i = 0
+    if order == 'first':
+        i = string.find(symbol)
+    if order == 'last':
+        i = string.rfind(symbol)
+
+    if i < 0:
+        return string
+
+    if dire == 'left':
+        return string[:i].rstrip()
+    if dire == 'right':
+        return string[i+1:].lstrip()
+
+    return ''
+
 
 
 def generate_wrap_report(SCRIPT_DIR, SOURCE_DIR, SUBROUTINES_FILES, FUNCTIONS_FILES, SUBROUTINES, FUNCTIONS):

@@ -1,5 +1,7 @@
 # &nbsp; ))) <br/> F\\_/&nbsp; QAWA Fortran-Code-Profiler
-QAWA Fortran-Code-Profiler (or just QAWA) is a Python-based framework for profiling Fortran source code. You can use it to track the control flow, show call chains and measure the execution time of your procedures.
+QAWA Fortran-Code-Profiler (or just QAWA) is a Python-based framework for profiling Fortran source code. You can use it to track the control flow, show call chains and measure the execution time of your procedures.<br/>
+❗ Note: Profiling of multithreaded programs is currently in an experimental phase.
+
 
 # 💡 Idea
 QAWA wraps Fortran subroutines in source files with special code designed to monitor control flow and measure execution time. The following examples illustrate the idea.
@@ -116,125 +118,149 @@ qawa unwrap (1) -> rebuild your project
 ## 📋 Reports
 The `report <out>` command generate the following text formatted reports based on the `<out>` file:
 - control flow report: `<out>.flow`
-- short control flow report with rolled loops: `<out>.short_flow`
-- procedures execution times report: `<out>.times`
-- call chains report with execution times: `<out>.chains`
+- short control flow report with rolled loops: `<out>.flow_short`
+- bunch of call chains reports with execution times: `<out>.chains[...]`
 
 ### &nbsp;&nbsp; 📄 Examples
 ##### &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; 🌊`<out>.short_flow`:
 ```
-QAWA SHORT FLOW REPORT
-----------------------
+QAWA FLOW REPORT (Rollup: True)
+File: outs/qawa_c1.out.flow_short
+Date: 22.04.2021 01:02:21
+-------------------------------
 
-MAIN
+#1 MAIN
+
 [...]
-    sapt_driver
-        sapt_basinfo
-            basinfo
-        sapt_interface
-            onel_molpro                   |x2
-                readoneint_molpro   |x3   |
-                square_oneint       |     |
-                writeoneint               |
-            readocc_molpro         |x2
-                read_1rdm_molpro   |
-                Diag8              |
-                SortOcc            |
-                read_nact_molpro   |
-            print_occ
-            read_mo_molpro   |x2
-            prepare_no              |x2
-                create_ind          |
-                readoneint_molpro   |
-                FockGen_mithap      |
-                Diag8   |x2         |
-            prepare_rdm2_file      |x2
-                read_2rdm_molpro   |
-                TrRDM2             |
-            select_active   |x2
-            print_active
-            calc_elpot
-                get_den   |x2
-                get_one_mat   |x2
-        sapt_mon_ints      |x2
-            get_1el_h_mo   |
-        sapt_response
-            SaptInter
-            read2rdm
-            prepare_RDM2val
+
+#1 .   sapt_driver
+#1 .   .   sapt_basinfo
+#1 .   .   .   basinfo
+#1 .   .   sapt_interface
+#1 .   .   .   onel_molpro                   |x2
+#1 .   .   .   .   readoneint_molpro   |x3   |
+#1 .   .   .   .   square_oneint       |     |
+#1 .   .   .   .   writeoneint               |
+#1 .   .   .   readocc_molpro         |x2
+#1 .   .   .   .   read_1rdm_molpro   |
+#1 .   .   .   .   Diag8              |
+#1 .   .   .   .   SortOcc            |
+#1 .   .   .   .   read_nact_molpro   |
+#1 .   .   .   print_occ
+#1 .   .   .   read_mo_molpro   |x2
+#1 .   .   .   readtwoint
+#1 .   .   .   .   open_Sorter
+#1 .   .   .   .   dump_Sorter
+
 [...]
 ```
-##### &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; ⏱️ `<out>.times`:
+##### &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; 🌊`<out>.short_flow` #2:
 ```
-QAWA TIMES REPORT
---------------------------------
-* All times expressed in seconds
+QAWA FLOW REPORT (Rollup: True)
+File: outs/qawa_dynamic.out.flow_short
+Date: 22.04.2021 00:10:01
+-------------------------------
 
--------------------
-Sums of self times:
--------------------
-Wall time: 303.6890
-CPU time: 295.1999
-
------------------------------------
-The most time-consuming procedures:
------------------------------------
-Wall time: sapt_driver [sapt_main.f90]: 303.0693
-CPU time: sapt_driver [sapt_main.f90]: 295.1463
-
-------------------------------------------------------
-The most time-consuming procedures excluding children:
-------------------------------------------------------
-Wall time: sapt_ab_ints [sapt_main.f90]:  89.7729
-CPU time: sapt_ab_ints [sapt_main.f90]:  89.7401
-
-
-EXECUTION TIMES sorted by WALL TIME:                                               V DESCENDING V
--------------------------+----------------------+------+--------+----------------+----------------+------------+----------------+----------------+------------
-NAME                     | FILE                 | TYPE |  CALLS |       CPU_TIME |      WALL_TIME |        C/W |  SELF_CPU_TIME | SELF_WALL_TIME |   SELF_C/W
--------------------------+----------------------+------+--------+----------------+----------------+------------+----------------+----------------+------------
-sapt_driver              | sapt_main.f90        |  S   |      1 |       295.1463 |       303.0693 |       0.97 |         0.0035 |         0.0654 |       0.05
-sapt_ab_ints             | sapt_main.f90        |  S   |      1 |        89.7401 |        89.7729 |       1.00 |        89.7401 |        89.7729 |       1.00
-e2disp                   | sapt_pol.f90         |  S   |      1 |        76.5387 |        76.6736 |       1.00 |        38.1335 |        38.1591 |       1.00
-sapt_response            | sapt_main.f90        |  S   |      2 |        40.9351 |        47.8492 |       0.86 |         0.0024 |         0.0515 |       0.05
-calc_resp_casgvb         | sapt_main.f90        |  S   |      2 |        40.9310 |        47.7844 |       0.86 |         0.1511 |         0.1968 |       0.77
-e2disp_semi              | sapt_pol.f90         |  S   |      1 |        38.3215 |        38.3961 |       1.00 |        38.2806 |        38.3067 |       1.00
-ERPASYMM0                | interpa.f            |  S   |    459 |        30.0698 |        34.9029 |       0.86 |        25.5087 |        28.4627 |       0.90
-sapt_interface           | sapt_main.f90        |  S   |      1 |        31.7688 |        32.0481 |       0.99 |        22.3431 |        22.3982 |       1.00
-sapt_mon_ints            | sapt_main.f90        |  S   |      2 |        31.1881 |        31.2095 |       1.00 |        31.1842 |        31.2021 |       1.00
-
-[...]
+#1 MAIN
+#1 .   wakeup
+#1 .   .   work
+#1 .   greeting
+#1 .   .   prepare_hello
+#1 .   .   .   work
+PARALLEL 3 =======================================================================================================================
+#1 .   .   execute_hello   |x8                    #2 .   .   execute_hello   |x5                    #3 .   .   execute_hello   |x3
+#1 .   .   .   say_hello   |                      #2 .   .   .   say_hello   |                      #3 .   .   .   say_hello   |   
+#1 .   .   .   .   work    |                      #2 .   .   .   .   work    |                      #3 .   .   .   .   work    |   
+SEQUENTIAL -----------------------------------------------------------------------------------------------------------------------
+#1 .   .   finish_hello
+#1 .   .   .   work
+#1 .   .   work
+#1 .   .   prepare_hello
+#1 .   .   .   work
+PARALLEL 3 =======================================================================================================================
+#1 .   .   execute_hello   |x9                    #2 .   .   execute_hello   |x4                    #3 .   .   execute_hello   |x3
+#1 .   .   .   say_hello   |                      #2 .   .   .   say_hello   |                      #3 .   .   .   say_hello   |  
+#1 .   .   .   .   work    |                      #2 .   .   .   .   work    |                      #3 .   .   .   .   work    |  
+SEQUENTIAL -----------------------------------------------------------------------------------------------------------------------
+#1 .   .   finish_hello
+#1 .   .   .   work
+#1 .   .   work
+#1 .   bye
 ```
 
 ##### &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; ⛓️ `<out>.chains`:
 ```
-QAWA CHAINS REPORT
---------------------------------------------------------------
-* W-TIME = wall time, C-TIME = CPU time, C/W = C-TIME / W-TIME
+QAWA CHAINS REPORT (Rollup: False, Reverse: False, Sort key: self_wtime)
+File: outs/qawa_c8.out.chains-self_wtime
+Date: 22.04.2021 01:04:49
+------------------------------------------------------------------------
+* W-TIME = wall time, C-TIME = CPU time
 * All times expressed in seconds
+------------------------------------------------------------------------
 
-V  DESC.  V
-SELF W-TIME  SELF C-TIME     C/W   COUNT  CHAIN
----------------------------------------------------------------------------------------------------------------------------------------------
-    89.6058      89.5601    1.00      11  MAIN -> sapt_driver -> sapt_ab_ints -> tran4_gen
-    38.2410      38.2208    1.00       1  MAIN -> sapt_driver -> e2disp -> e2disp_semi
-    38.1789      38.1563    1.00       1  MAIN -> sapt_driver -> e2disp
-    30.1765      30.1547    1.00       4  MAIN -> sapt_driver -> sapt_mon_ints -> tran4_gen
-    25.1398      25.1229    1.00       2  MAIN -> sapt_driver -> sapt_response -> calc_resp_casgvb -> ERPASYMMXY -> ERPASYMM0
-    21.6229      21.4486    0.99       1  MAIN -> sapt_driver -> sapt_interface -> readtwoint
-     8.7008       8.6928    1.00       2  MAIN -> sapt_driver -> sapt_response -> calc_resp_casgvb -> ACEneERPA_FOFO
-     5.0880       5.0701    1.00       2  MAIN -> sapt_driver -> sapt_interface -> prepare_no -> FockGen_mithap
-     4.5050       4.5018    1.00       2  MAIN -> sapt_driver -> e1exchs2 -> tran4_gen
-     4.3428       4.3355    1.00       4  MAIN -> sapt_driver -> sapt_response -> calc_resp_casgvb -> ERPASYMMXY -> ERPASYMM0 -> Diag8
-     3.1237       0.3108    0.10     457  MAIN -> sapt_driver -> sapt_response -> calc_resp_casgvb -> Y01CAS_FOFO -> pack_Eblock -> ERPASYMM0
-     3.0766       3.0754    1.00       1  MAIN -> sapt_driver -> sapt_interface -> calc_elpot -> make_J2
-     2.8640       2.7931    0.98       1  MAIN -> sapt_driver -> e2exdisp
+     W-TIME |      C-TIME |    C/W | SELF W-TIME | SELF C-TIME |    C/W | CALLS | THREADS | CHAIN
+------------+-------------+--------+-------------+-------------+--------+-------+---------+---------------------------------------------------------------------------------------------------------------------------------
+    56.7938 |    454.2902 |   8.00 |     56.7938 |    454.2902 |   8.00 |    11 |     1/1 | MAIN -> sapt_driver -> sapt_ab_ints -> tran4_gen
+    38.1309 |     39.3263 |   1.03 |     38.0859 |     39.0671 |   1.03 |     1 |     1/1 | MAIN -> sapt_driver -> e2disp -> e2disp_semi
+    76.1829 |     79.3851 |   1.04 |     37.9631 |     39.3624 |   1.04 |     1 |     1/1 | MAIN -> sapt_driver -> e2disp
+    25.1468 |     38.5890 |   1.53 |     24.1361 |     30.8087 |   1.28 |     2 |     1/1 | MAIN -> sapt_driver -> sapt_response -> calc_resp_casgvb -> ERPASYMMXY -> ERPASYMM0
+    21.7006 |     22.9174 |   1.06 |     20.9240 |     21.8996 |   1.05 |     1 |     1/1 | MAIN -> sapt_driver -> sapt_interface -> readtwoint
+    19.6822 |    157.4464 |   8.00 |     19.6822 |    157.4464 |   8.00 |     4 |     1/1 | MAIN -> sapt_driver -> sapt_mon_ints -> tran4_gen
+     8.6152 |      8.6125 |   1.00 |      8.6152 |      8.6125 |   1.00 |     2 |     1/1 | MAIN -> sapt_driver -> sapt_response -> calc_resp_casgvb -> ACEneERPA_FOFO
+     6.4933 |     51.8933 |   7.99 |      6.4894 |     51.8656 |   7.99 |     2 |     1/1 | MAIN -> sapt_driver -> sapt_interface -> prepare_no -> FockGen_mithap
+     5.8853 |     47.0801 |   8.00 |      5.8853 |     47.0801 |   8.00 |     2 |     1/1 | MAIN -> sapt_driver -> e1exchs2 -> tran4_gen
+     3.0947 |     24.7562 |   8.00 |      3.0947 |     24.7562 |   8.00 |     1 |     1/1 | MAIN -> sapt_driver -> e1exchs2 -> make_K
+     2.9415 |     23.5293 |   8.00 |      2.9415 |     23.5293 |   8.00 |     1 |     1/1 | MAIN -> sapt_driver -> sapt_interface -> calc_elpot -> make_J2
+     2.8728 |     22.9807 |   8.00 |      2.8728 |     22.9807 |   8.00 |     1 |     1/1 | MAIN -> sapt_driver -> e1elst -> make_J1
+     2.6433 |      5.4145 |   2.05 |      2.6433 |      5.4145 |   2.05 |     2 |     1/1 | MAIN -> sapt_driver -> e2exdisp -> inter_A2_XX
+     2.3128 |      7.8600 |   3.40 |      2.3128 |      7.8600 |   3.40 |     2 |     1/1 | MAIN -> sapt_driver -> e2exdisp -> inter_A2_YX
+     3.3094 |      0.4823 |   0.15 |      1.8927 |      0.2740 |   0.14 |   457 |     1/1 | MAIN -> sapt_driver -> sapt_response -> calc_resp_casgvb -> Y01CAS_FOFO -> pack_Eblock -> ERPASYMM0
 
 [...]
+```
+
+##### &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; ⛓️ `<out>.chains` #2:
+```
+QAWA CHAINS REPORT (Rollup: False, Reverse: True, Sort key: wtime)
+File: outs/qawa_dynamic.out.chains-wtime-rev
+Date: 22.04.2021 00:10:01
+------------------------------------------------------------------
+* W-TIME = wall time, C-TIME = CPU time
+* All times expressed in seconds
+------------------------------------------------------------------
+
+     W-TIME |      C-TIME |    C/W | SELF W-TIME | SELF C-TIME |    C/W | CALLS | THREADS | PROCEDURE       | CALLING CHAIN
+------------+-------------+--------+-------------+-------------+--------+-------+---------+-----------------+-----------------------------------------
+    86.8327 |    299.6527 |   3.45 |      0.0010 |      0.0010 |   1.00 |     1 |     1/1 | MAIN            |
+    84.6309 |    297.4511 |   3.51 |      0.0036 |      1.4138 | 393.05 |     1 |     1/1 | greeting        | <- MAIN
+    60.2304 |     60.2304 |   1.00 |      0.0018 |      0.0019 |   1.05 |     4 |     5/5 | execute_hello   | <- greeting <- MAIN
+    60.2286 |     60.2285 |   1.00 |      0.0017 |      0.0015 |   0.86 |     4 |     5/5 | say_hello       | <- execute_hello <- greeting <- MAIN
+    60.2269 |     60.2270 |   1.00 |     60.2269 |     60.2270 |   1.00 |     4 |     5/5 | work            | <- say_hello <- execute_hello <- greeting <- MAIN
+    54.8955 |     54.8955 |   1.00 |      0.0013 |      0.0013 |   1.02 |     9 |     2/5 | execute_hello   | <- greeting <- MAIN
+    54.8942 |     54.8942 |   1.00 |      0.0029 |      0.0028 |   0.96 |     9 |     2/5 | say_hello       | <- execute_hello <- greeting <- MAIN
+    54.8913 |     54.8914 |   1.00 |     54.8913 |     54.8914 |   1.00 |     9 |     2/5 | work            | <- say_hello <- execute_hello <- greeting <- MAIN
+    54.8446 |     54.8446 |   1.00 |      0.0018 |      0.0017 |   0.95 |     6 |     3/5 | execute_hello   | <- greeting <- MAIN
+    54.8428 |     54.8429 |   1.00 |      0.0023 |      0.0024 |   1.07 |     6 |     3/5 | say_hello       | <- execute_hello <- greeting <- MAIN
+    54.8406 |     54.8405 |   1.00 |     54.8406 |     54.8405 |   1.00 |     6 |     3/5 | work            | <- say_hello <- execute_hello <- greeting <- MAIN
+    51.8680 |     51.8677 |   1.00 |      0.0019 |      0.0015 |   0.79 |    17 |     1/5 | execute_hello   | <- greeting <- MAIN
+    51.8662 |     51.8662 |   1.00 |      0.0040 |      0.0043 |   1.09 |    17 |     1/5 | say_hello       | <- execute_hello <- greeting <- MAIN
+    51.8622 |     51.8619 |   1.00 |     51.8622 |     51.8619 |   1.00 |    17 |     1/5 | work            | <- say_hello <- execute_hello <- greeting <- MAIN
+    49.2113 |     49.2112 |   1.00 |      0.0014 |      0.0012 |   0.86 |     4 |     4/5 | execute_hello   | <- greeting <- MAIN
+    49.2099 |     49.2100 |   1.00 |      0.0019 |      0.0019 |   1.02 |     4 |     4/5 | say_hello       | <- execute_hello <- greeting <- MAIN
+    49.2081 |     49.2081 |   1.00 |     49.2081 |     49.2081 |   1.00 |     4 |     4/5 | work            | <- say_hello <- execute_hello <- greeting <- MAIN
+    15.0279 |     15.0272 |   1.00 |     15.0279 |     15.0272 |   1.00 |     2 |     1/1 | work            | <- greeting <- MAIN
+     4.8711 |      4.8708 |   1.00 |      0.0003 |      0.0003 |   1.07 |     2 |     1/1 | prepare_hello   | <- greeting <- MAIN
+     4.8707 |      4.8705 |   1.00 |      4.8707 |      4.8705 |   1.00 |     2 |     1/1 | work            | <- prepare_hello <- greeting <- MAIN
+     4.4980 |      5.0899 |   1.13 |      0.0008 |      0.0016 |   2.09 |     2 |     1/1 | finish_hello    | <- greeting <- MAIN
+     4.4972 |      5.0883 |   1.13 |      4.4972 |      5.0883 |   1.13 |     2 |     1/1 | work            | <- finish_hello <- greeting <- MAIN
+     2.2008 |      2.2006 |   1.00 |      0.0007 |      0.0007 |   1.00 |     1 |     1/1 | wakeup          | <- MAIN
+     2.2001 |      2.2000 |   1.00 |      2.2001 |      2.2000 |   1.00 |     1 |     1/1 | work            | <- wakeup <- MAIN
+     0.0001 |      0.0001 |   1.00 |      0.0001 |      0.0001 |   1.00 |     1 |     1/1 | bye             | <- MAIN
 ```
 
 ## 📜 Requirements
 &nbsp; &nbsp; &nbsp; &nbsp; 🐍 [Python 3.6 (or higher)](https://www.python.org/downloads/)
 
 ## 🚦 Status
-_in progress_
+* implementing support for multithreaded applications
+* testing

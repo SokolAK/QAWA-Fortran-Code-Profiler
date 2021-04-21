@@ -35,9 +35,9 @@ class Main_wrapper():
         j = len(lines) - 1
         while j > 0:
             line = lines[j].lstrip().lower()
-            if line.startswith('stop') or line.startswith('end'):
+            #if line.startswith('stop') or line.startswith('end'):
+            if line.startswith('stop') or line.startswith('end program'):
                 lines.insert(j, self.get_after_fragment())
-                break
             j -= 1
 
 
@@ -49,57 +49,27 @@ class Main_wrapper():
 
 
     def get_before_fragment(self):
-        fragment = f""" 
-      {get_fragment_header()}
-      real ( kind = 8 ) :: cpu_start, cpu_end, wtime_start, wtime_end
-      wtime_start = omp_get_wtime()
-      call cpu_time(cpu_start)
-
-      !$OMP CRITICAL
-      open(61,file=
-     $'{self.SCRIPT_DIR}
-     $/outs/
-     ${self.OUT_FILE}',
-     $action='write')
-      write(61,'(A,I2,I2)') '-> 
-     ${self.MAIN_FILE_NAME} 
-     $MAIN M',
-     $OMP_GET_THREAD_NUM()+1, OMP_GET_NUM_THREADS()
-      close(61)
-      !$OMP END CRITICAL
-      {get_fragment_footer()}
+        fragment = \
+f""" {get_fragment_header()}
+{get_wrapper_declarations(self.SCRIPT_DIR, self.OUT_FILE)}
+{get_wrapper_time_start(self.MAIN_FILE_NAME, 'MAIN', 'M', file_mode="")}
+{get_fragment_footer()}
 
 """
 
         if self.MAIN_FILE.lower().rstrip().endswith('.f90'):
             fragment = convert_text_block_from_f77_to_f90(fragment)
-        
         return fragment
 
 
     def get_after_fragment(self):
-        fragment = f""" 
-      {get_fragment_header()}
-      call cpu_time(cpu_end)
-      wtime_end = omp_get_wtime()
-    
-      !$OMP CRITICAL
-      open(61,file=
-     $'{self.SCRIPT_DIR}
-     $/outs/
-     ${self.OUT_FILE}',
-     $action='write',position='append')
-      write(61,'(A,2F14.6)') '<- 
-     ${self.MAIN_FILE_NAME} 
-     $MAIN M',
-     $cpu_end-cpu_start, wtime_end-wtime_start
-      close(61)
-      !$OMP END CRITICAL
-      {get_fragment_footer()}
+        fragment = \
+f""" {get_fragment_header()}
+{get_wrapper_time_end(self.MAIN_FILE_NAME, 'MAIN', 'M')}
+{get_fragment_footer()}
 
 """
 
         if self.MAIN_FILE.lower().rstrip().endswith('.f90'):
             fragment = convert_text_block_from_f77_to_f90(fragment)
-        
         return fragment

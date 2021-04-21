@@ -9,45 +9,40 @@ C
 C
       Character*60 Title,FMultTab
 C
- 
-      !start qawa  ##################################
-      real ( kind = 8 ) :: cpu_start, cpu_end, wtime_start, wtime_end
-      wtime_start = omp_get_wtime()
-      call cpu_time(cpu_start)
+ !start qawa  ##################################
+      integer :: q_sys_start, q_sys_end
+      real(kind=8) :: q_wtime_start, q_wtime_end, q_cpu_start, q_cpu_end
+      character(len=256) :: q_file
+      integer :: th, ths
+      real(kind=8) :: cpu_rate
+      integer :: count_rate,count_max
+      call system_clock(count_rate=count_rate)
+      call system_clock(count_max=count_max)
+      cpu_rate = real(count_rate)
+      th = OMP_GET_THREAD_NUM() + 1
+      ths = OMP_GET_NUM_THREADS()
 
-      !$OMP CRITICAL
-      open(61,file=
+      write (q_file, '(A, A)')
      $'/home/adam.sokol/QCHEM/PROFILING/QAWA
      $/outs/
-     $qawa.out',
+     $qawa.out'
+
+      q_wtime_start = omp_get_wtime()
+      call cpu_time(q_cpu_start)
+      call SYSTEM_CLOCK(q_sys_start)
+
+      !$OMP CRITICAL
+      open(10,file=
+     $q_file,
      $action='write')
-      write(61,'(A,I2,I2)') '-> 
-     $test_main.f 
+      write(10,'(A, 2I3)')
+     $'-> test_main.f 
      $MAIN M',
-     $OMP_GET_THREAD_NUM()+1, OMP_GET_NUM_THREADS()
-      close(61)
+     $th, ths
+      close(10)
       !$OMP END CRITICAL
-      !end qawa  ##################################
+!end qawa  ##################################
 
       <some code>
-
- 
-      !start qawa  ##################################
-      call cpu_time(cpu_end)
-      wtime_end = omp_get_wtime()
-    
-      !$OMP CRITICAL
-      open(61,file=
-     $'/home/adam.sokol/QCHEM/PROFILING/QAWA
-     $/outs/
-     $qawa.out',
-     $action='write',position='append')
-      write(61,'(A,2F14.6)') '<- 
-     $test_main.f 
-     $MAIN M',
-     $cpu_end-cpu_start, wtime_end-wtime_start
-      close(61)
-      !$OMP END CRITICAL
-      !end qawa  ##################################
 
       End

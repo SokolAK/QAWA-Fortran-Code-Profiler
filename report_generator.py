@@ -32,9 +32,9 @@ class Report_generator():
                 f"{self.typ:^{cw[2]}s} | " + \
                 f"{self.no_calls:{cw[3]}d} | " + \
                 f"{self.cpu_time:{cw[4]}.4f} | {self.wall_time:{cw[5]}.4f} | " + \
-                f"{self.cpu_time/self.wall_time:{cw[6]}.2f} | " + \
+                f"{self.cpu_time/self.wall_time:{cw[6]}.4f} | " + \
                 f"{self.self_cpu_time:{cw[7]}.4f} | {self.self_wall_time:{cw[8]}.4f} | " + \
-                f"{self.self_cpu_time/self.self_wall_time if self.self_wall_time else 0:{cw[9]}.2f}"
+                f"{self.self_cpu_time/self.self_wall_time if self.self_wall_time else 0:{cw[9]}.4f}"
         def add(self, other):
             self.cpu_time += other.cpu_time
             self.wall_time += other.wall_time
@@ -44,7 +44,6 @@ class Report_generator():
     def generate_report(self):
         self.lines = read_file(self.QAWA_OUT)
         self.calculate_overhead()
-        print(self.overhead)
         self.prepare_flow_report()
         self.prepare_short_flow_report()
         self.prepare_times_report()
@@ -56,7 +55,7 @@ class Report_generator():
             direction, file, procedure, typ, thread, no_threads  = line.split()
             return file, procedure, typ, int(thread), int(no_threads)
         else:
-            direction, file, procedure, typ, cpu_time, wall_time = line.split()
+            direction, file, procedure, typ, thread, no_threads, sys_time, cpu_time, wall_time = line.split()
             cpu_time, wall_time = float(cpu_time), float(wall_time)
             m = cpu_time / wall_time if wall_time > 0 else 1
             wall_time -= self.overhead
@@ -268,7 +267,7 @@ CPU time: {unit_max_s_cl.procedure} [{unit_max_s_cl.file}]: {unit_max_s_cl.cpu_t
             f.write(f"* W-TIME = wall time, C-TIME = CPU time, C/W = C-TIME / W-TIME\n")
             f.write(f"* All times expressed in seconds\n\n")
             f.write(f"V  DESC.  V\n")
-            f.write(f"{'SELF W-TIME':>11s}  {'SELF C-TIME':>11s}  {'C/W':>6s}  {'COUNT':>6s}  {'CHAIN'}\n")  
+            f.write(f"{'SELF W-TIME':>11s}  {'SELF C-TIME':>11s}  {'C/W':>6s}  {'CALLS':>6s}  {'CHAIN'}\n")  
             f.write(f"{''.join(['-']*(11 + 2 + 11 + 2 + 9 + 2 + 6 + 2 + max_chain_length))}\n")
             for name, details in chains.items():
                 f.write(f"{details['wtime']:11.4f}  {details['ctime']:11.4f}  ")
