@@ -2,7 +2,8 @@ import sys, os
 from subroutine_wrapper import Subroutine_wrapper
 from function_wrapper import Function_wrapper
 from main_wrapper import Main_wrapper
-from report import Report_generator
+import report_generator
+import report_generator_mt
 from strings import get_banner
 from utils import *
 from shutil import copy
@@ -19,12 +20,13 @@ def help():
     print(f"Usage: run shell script './qawa <command>' or python script 'python qawa.py <command>'")
     print()
     print(f"List of commands:")
-    print(f"wrap <config.py> -o [out] .... Add profiling wrappers to files listed in <config.py>.")
-    print(f"                               Profiling data will be saved to [out] file located in <QAWA_DIR>/outs/.")
+    print(f"wrap <config.py> -o [file] ... Add profiling wrappers to files listed in <config.py>.")
+    print(f"                               Profiling data will be saved to [file].out file located in <QAWA_DIR>/outs/.")
     print(f"                               If no [out] is passed, the output filename is set to 'qawa.out'.")
     print(f"unwrap <config.py> ........... Restore the original version of the source files listed in <config.py>")
     print(f"                               from before the wrapping process.")
     print(f"report <out> ................. Generate reports based on the given <out> file.")
+    #print(f"report_mt <out> .............. Generate thread-aware reports based on the given <out> file. Experimental.")
     print()
 
 
@@ -74,6 +76,10 @@ def wrap():
     OUT_FILE = find_flag_value('-o', 'qawa.out')
     unwrap()
 
+    print("[QAWA] Wrapping main...")
+    main_wrapper = Main_wrapper(SCRIPT_DIR, MAIN_FILE, OUT_FILE)
+    main_wrapper.wrap()
+
     print("[QAWA] Wrapping subroutines...")
     sub_wrapper = Subroutine_wrapper(SCRIPT_DIR=SCRIPT_DIR, 
         SOURCE_DIR=SOURCE_DIR,
@@ -89,10 +95,6 @@ def wrap():
         FILES=FUNCTIONS_FILES,
         FUNCTIONS=FUNCTIONS)
     fun_wrapper.wrap()
-
-    print("[QAWA] Wrapping main...")
-    main_wrapper = Main_wrapper(SCRIPT_DIR, MAIN_FILE, OUT_FILE)
-    main_wrapper.wrap()
 
     print("[QAWA] Generating wrap report...")
     generate_wrap_report(SCRIPT_DIR, SOURCE_DIR, SUBROUTINES_FILES, FUNCTIONS_FILES, SUBROUTINES, FUNCTIONS)
@@ -110,11 +112,17 @@ def unwrap():
 def report():
     if len(sys.argv) < 3:
         wrong_usage()
-
-
     print("[QAWA] Generating reports...")
-    report_generator = Report_generator(sys.argv[2])
-    report_generator.generate_report()
+    rg = report_generator.Report_generator(sys.argv[2])
+    rg.generate_report()
+
+
+def report_mt():
+    if len(sys.argv) < 3:
+        wrong_usage()
+    print("[QAWA] Generating reports...")
+    rg = report_generator_mt.Report_generator(sys.argv[2])
+    rg.generate_report()
 
 
 def test():
@@ -130,7 +138,8 @@ commands = {
     'help': help,
     'wrap': wrap,
     'unwrap': unwrap,
-    'report': report,
+    'report': report_mt,
+    'report_mt': report_mt,
     'test': test,
 }
 command = sys.argv[1]
