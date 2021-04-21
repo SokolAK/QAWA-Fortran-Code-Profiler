@@ -2,6 +2,7 @@
 QAWA Fortran-Code-Profiler (or just QAWA) is a Python-based framework for profiling Fortran source code. You can use it to track the control flow, show call chains and measure the execution time of your procedures.<br/>
 ❗ Note: Profiling of multithreaded programs is currently in an experimental phase.
 
+
 # 💡 Idea
 QAWA wraps Fortran subroutines in source files with special code designed to monitor control flow and measure execution time. The following examples illustrate the idea.
 
@@ -153,7 +154,6 @@ Date: 22.04.2021 01:02:21
 
 [...]
 ```
-
 ##### &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; 🌊`<out>.short_flow` #2:
 ```
 QAWA FLOW REPORT (Rollup: True)
