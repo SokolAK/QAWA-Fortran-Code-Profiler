@@ -139,7 +139,7 @@ commands = {
     'wrap': wrap,
     'unwrap': unwrap,
     'report': report_mt,
-    'report_mt': report_mt,
+    'report_old': report,
     'test': test,
 }
 command = sys.argv[1]
