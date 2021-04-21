@@ -97,7 +97,6 @@ class Subroutine_wrapper():
     def wrap_subroutine(self, lines, subroutine):
         prepare_file(f"{self.SOURCE_DIR}/{subroutine.file}")
         i = self.find_subroutine(lines, subroutine)
-        
         lines[i] = lines[i].replace(subroutine.name, f"{get_prefix()}{subroutine.name}")
         line = lines[i]
         
@@ -148,7 +147,7 @@ class Subroutine_wrapper():
         files = set([file for file in files if file.endswith('.f') or file.endswith('.f90')])
 
         for file in files:
-            lines = read_file(f"{self.SOURCE_DIR}/{file}")
+            lines = read_file(f"{self.SOURCE_DIR}{file}")
 
             for i,line in enumerate(lines):
                 line = line.lower()
@@ -161,7 +160,7 @@ class Subroutine_wrapper():
                         lines[i+1] = ''
                         i += 1
 
-            save_file(f"{self.SOURCE_DIR}/{file}", lines)
+            save_file(f"{self.SOURCE_DIR}{file}", lines)
 
                         
     def modify_ends(self, lines, subroutines):
@@ -181,40 +180,10 @@ f"""{get_wrapper_header()}
 {subroutine.signature_lines}
       use omp_lib
 {subroutine.declarations_lines}
-      real ( kind = 8 ) :: cpu_start, cpu_end, wtime_start, wtime_end
-      wtime_start = omp_get_wtime()
-      call cpu_time(cpu_start)
-
-      !$OMP CRITICAL
-      open(61,file=
-     $'{self.SCRIPT_DIR}
-     $/outs/
-     ${self.OUT_FILE}',
-     $action='write',position='append')
-      write(61,'(A,I2,I2)')
-     $'-> {subroutine.file} 
-     ${subroutine.name} S',
-     $OMP_GET_THREAD_NUM()+1, OMP_GET_NUM_THREADS()
-      close(61)
-      !$OMP END CRITICAL
-
+{get_wrapper_declarations(self.SCRIPT_DIR, self.OUT_FILE)}
+{get_wrapper_time_start(subroutine.file, subroutine.name, 'S')}
       call {get_prefix()}{subroutine.signature_lines.replace('subroutine','').replace('Subroutine','').replace('SUBROUTINE','').lstrip()}
-      call cpu_time(cpu_end)
-      wtime_end = omp_get_wtime()
-    
-      !$OMP CRITICAL
-      open(61,file=
-     $'{self.SCRIPT_DIR}
-     $/outs/
-     ${self.OUT_FILE}',
-     $action='write',position='append')
-      write(61,'(A,2F14.6)')
-     $'<- {subroutine.file} 
-     ${subroutine.name} S',
-     $cpu_end-cpu_start, wtime_end-wtime_start
-      close(61)
-      !$OMP END CRITICAL
-
+{get_wrapper_time_end(subroutine.file, subroutine.name, 'S')}
       return
       end
 {get_wrapper_footer()}
