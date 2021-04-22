@@ -97,8 +97,9 @@ def wrap():
     fun_wrapper.wrap()
 
     print("[QAWA] Generating wrap report...")
-    generate_wrap_report(SCRIPT_DIR, SOURCE_DIR, SUBROUTINES_FILES, FUNCTIONS_FILES, SUBROUTINES, FUNCTIONS)
-
+    generate_wrap_report(SCRIPT_DIR, SOURCE_DIR, \
+                         SUBROUTINES_FILES, FUNCTIONS_FILES, \
+                         SUBROUTINES, FUNCTIONS, MAIN_FILE)
 
 def unwrap():
     prepare_config()

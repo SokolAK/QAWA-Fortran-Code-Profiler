@@ -96,8 +96,6 @@ class Flow_generator():
 
         return paths
 
-
-
     def save_flows(self, lines, paths, rollup=False):
         file_flow = f"{self.QAWA_OUT}.flow"
         if rollup:
@@ -107,6 +105,7 @@ class Flow_generator():
         new_lines = []
         i = 0
         tab = '.   '
+
         running_tabs = {}
         for no, path in paths.items():
             running_tabs[no] = f"#0-1 "
@@ -127,6 +126,7 @@ class Flow_generator():
                     running_tabs['0-1'] += tab
                 if dire == '<-':
                     running_tabs['0-1'] = running_tabs['0-1'].replace(tab, '', 1)
+
             # PARALLEL
             # ----------------------------------------------------------------------
             else:
@@ -158,6 +158,7 @@ class Flow_generator():
                 lines_num = len(max(parallel_flows, key=len))
                 for j in range(lines_num):
                     new_line = False
+
                     for no, flow in parallel_flows.items():
                         if j < len(flow):
                             if not new_line:
