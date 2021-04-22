@@ -9,13 +9,12 @@ C
 C
       Character*60 Title,FMultTab
 C
- !start qawa  ##################################
+ !start qawa open_qawa_main ##################################
       integer :: q_sys_start, q_sys_end
       real(kind=8) :: q_wtime_start, q_wtime_end, q_cpu_start, q_cpu_end
-      character(len=256) :: q_file
-      integer :: th, ths
       real(kind=8) :: cpu_rate
-      integer :: count_rate,count_max
+      character(len=256) :: q_file
+      integer :: th, ths, count_rate, count_max, q_unit
       call system_clock(count_rate=count_rate)
       call system_clock(count_max=count_max)
       cpu_rate = real(count_rate)
@@ -32,17 +31,36 @@ C
       call SYSTEM_CLOCK(q_sys_start)
 
       !$OMP CRITICAL
-      open(10,file=
+      open(newunit=q_unit,file=
      $q_file,
      $action='write')
-      write(10,'(A, 2I3)')
+      write(q_unit,'(A, 2I3)')
      $'-> test_main.f 
      $MAIN M',
      $th, ths
-      close(10)
+      close(q_unit)
       !$OMP END CRITICAL
 !end qawa  ##################################
 
       <some code>
+
+ !start qawa close_qawa_main ##################################
+      q_wtime_end = omp_get_wtime()
+      call cpu_time(q_cpu_end)
+      call SYSTEM_CLOCK(q_sys_end)
+      
+      !$OMP CRITICAL
+      open(newunit=q_unit,file=
+     $q_file,
+     $action='write',position='append')
+      write(q_unit,'(A, 2I3, 3F14.6)')
+     $'<- test_main.f 
+     $MAIN M',
+     $th, ths,
+     $(q_sys_end-q_sys_start)/cpu_rate, q_cpu_end-q_cpu_start, 
+     $q_wtime_end-q_wtime_start
+      close(q_unit)
+      !$OMP END CRITICAL
+!end qawa  ##################################
 
       End

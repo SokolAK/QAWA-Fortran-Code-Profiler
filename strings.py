@@ -23,10 +23,9 @@ def get_prefix():
 def get_wrapper_declarations(script_dir, out_file):
     return f"""      integer :: q_sys_start, q_sys_end
       real(kind=8) :: q_wtime_start, q_wtime_end, q_cpu_start, q_cpu_end
-      character(len=256) :: q_file
-      integer :: th, ths
       real(kind=8) :: cpu_rate
-      integer :: count_rate,count_max
+      character(len=256) :: q_file
+      integer :: th, ths, count_rate, count_max, q_unit
       call system_clock(count_rate=count_rate)
       call system_clock(count_max=count_max)
       cpu_rate = real(count_rate)
@@ -45,14 +44,14 @@ def get_wrapper_time_start(file, name, typ, file_mode=",position='append'"):
       call SYSTEM_CLOCK(q_sys_start)
 
       !$OMP CRITICAL
-      open(10,file=
+      open(newunit=q_unit,file=
      $q_file,
      $action='write'{file_mode})
-      write(10,'(A, 2I3)')
+      write(q_unit,'(A, 2I3)')
      $'-> {file} 
      ${name} {typ}',
      $th, ths
-      close(10)
+      close(q_unit)
       !$OMP END CRITICAL"""
 
 def get_wrapper_time_end(file, name, typ, file_mode=",position='append'"):
@@ -61,15 +60,15 @@ def get_wrapper_time_end(file, name, typ, file_mode=",position='append'"):
       call SYSTEM_CLOCK(q_sys_end)
       
       !$OMP CRITICAL
-      open(10,file=
+      open(newunit=q_unit,file=
      $q_file,
      $action='write'{file_mode})
-      write(10,'(A, 2I3, 3F14.6)')
+      write(q_unit,'(A, 2I3, 3F14.6)')
      $'<- {file} 
      ${name} {typ}',
      $th, ths,
      $(q_sys_end-q_sys_start)/cpu_rate, q_cpu_end-q_cpu_start, 
      $q_wtime_end-q_wtime_start
-      close(10)
+      close(q_unit)
       !$OMP END CRITICAL"""
 
