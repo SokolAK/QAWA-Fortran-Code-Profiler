@@ -34,11 +34,16 @@ class Main_wrapper():
     
     def add_after_fragment(self, lines):
         j = len(lines) - 1
+        last_line = True
         while j > 0:
             line = lines[j].lstrip().lower()
             #if line.startswith('stop') or line.startswith('end'):
-            if line.startswith('stop') or line.startswith('end program'):
+            if line.startswith('stop') or line.startswith('end program') or \
+                    (line.startswith('end') and last_line):
                 lines.insert(j, self.get_after_fragment())
+
+            if not is_comment(self.MAIN_FILE, line):
+                last_line = False
             j -= 1
 
 
@@ -51,7 +56,7 @@ class Main_wrapper():
 
     def get_before_fragment(self):
         fragment = \
-f""" {get_fragment_header()}
+f""" {get_fragment_header(f"open_{get_prefix()}main")}
 {get_wrapper_declarations(self.SCRIPT_DIR, self.OUT_FILE)}
 {get_wrapper_time_start(self.MAIN_FILE_NAME, 'MAIN', 'M', file_mode="")}
 {get_fragment_footer()}
@@ -65,7 +70,7 @@ f""" {get_fragment_header()}
 
     def get_after_fragment(self):
         fragment = \
-f""" {get_fragment_header()}
+f""" {get_fragment_header(f"close_{get_prefix()}main")}
 {get_wrapper_time_end(self.MAIN_FILE_NAME, 'MAIN', 'M')}
 {get_fragment_footer()}
 

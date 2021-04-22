@@ -118,7 +118,10 @@ def get_substring_symbol(string, symbol, order, dire):
     return ''
 
 
-def generate_wrap_report(SCRIPT_DIR, SOURCE_DIR, SUBROUTINES_FILES, FUNCTIONS_FILES, SUBROUTINES, FUNCTIONS):
+def generate_wrap_report(SCRIPT_DIR, SOURCE_DIR, SUBROUTINES_FILES, \
+                        FUNCTIONS_FILES, SUBROUTINES, FUNCTIONS, \
+                        MAIN_FILE):
+
     with open(f"{SCRIPT_DIR}outs/qawa_wrap_report", 'w') as f:
 
         files = prepare_file_list(SOURCE_DIR, ['*'])
@@ -168,3 +171,21 @@ def generate_wrap_report(SCRIPT_DIR, SOURCE_DIR, SUBROUTINES_FILES, FUNCTIONS_FI
                     if typ in 'FS':
                         #wrapped_procedures.append([file, get_procedure_name_from_line(line), typ, wrapped, error])
                         f.write(f"{file:30s}{name:30s}{typ:10s}{wrapped:20s}{error:20s}\n")  
+
+        lines = read_file(f"{MAIN_FILE}")
+        wrapped = ''
+        error = ''
+        open_clause = False
+        close_clause = False
+        for line in lines:
+            if f"open_{get_prefix()}main" in line:
+                open_clause = True
+            if f"close_{get_prefix()}main" in line:
+                close_clause = True
+        if open_clause and close_clause:
+            wrapped = 'wrapped'
+        else:
+            error = 'error'
+
+        f.write(f"{MAIN_FILE.split('/')[-1]:30s}{'MAIN':30s}{'M':10s}{wrapped:20s}{error:20s}\n")
+        
