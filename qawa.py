@@ -124,8 +124,8 @@ def report_mt():
 
     fg = flow_generator.Flow_generator(sys.argv[2])
     fg.generate_report()
-    cg = chain_generator.Chain_generator(sys.argv[2])
-    cg.generate_report()
+    #cg = chain_generator.Chain_generator(sys.argv[2])
+    #cg.generate_report()
 
 
 def test():

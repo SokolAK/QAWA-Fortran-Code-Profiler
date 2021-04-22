@@ -1,13 +1,7 @@
 import os
 from shutil import copy
 from strings import get_prefix
-
-
-def get_declaration_key_words():
-    return ['program','use','include','data','implicit','external', \
-            'character','real','double','integer','dimension','logical', \
-            'complex','parameter','type','common']
-
+from line_utils import is_comment, get_procedure_name_from_line
 
 def convert_text_block_from_f77_to_f90(text_block):
     text_lines = [line.lstrip() for line in text_block.split('\n')]
@@ -101,7 +95,7 @@ def read_file(filename):
 def get_threads_nums(lines):
     threads_nums = set()
     for line in lines:
-        threads_nums.add(int(line.split()[4]))
+        threads_nums.add(line.split()[4])
     threads_nums = sorted(threads_nums)
     return threads_nums
 

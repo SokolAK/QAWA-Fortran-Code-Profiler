@@ -14,70 +14,14 @@ class Flow_generator():
         self.lines = []
         self.units = []
 
-    # class Procedure:
-    #     def __init__(self, file, name, typ):
-    #         self.file = file
-    #         self.name = name
-    #         self.typ = typ
-    #         self.thread = 0
-    #         self.max_threads = 0
-    #         self.ctime = 0
-    #         self.wtime = 0
-    #         self.no_calls = 0
-    #         self.self_ctime = 0.0
-    #         self.self_wtime = 0.0
-    #     def __str__(self):
-    #         return f"{self.name:15s} {self.thread:1d}/{self.max_threads:1d}"
-    #     def __eq__(self, other):
-    #         return self.name == other.name and self.file == other.file
-
-
-    # class Stack():
-    #     def __init__(self, th=0):
-    #         self.th = th
-    #         self.frames = []
-    #     def __str__(self):
-    #         string = ''
-    #         for frame in self.frames:
-    #             if isinstance(frame, list):
-    #                 i = 0
-    #                 flag = True
-    #                 while flag:
-    #                     flag = False
-    #                     for sub_stack in frame:
-    #                         if i < len(sub_stack):
-    #                             string += f"{sub_stack.th} {sub_stack.frames[i]}{''.join([' ']*15)}"
-    #                             flag = True
-    #                         else:
-    #                             string += f"{sub_stack.th} {'':19s}{''.join([' ']*15)}"
-    #                     string += '\n'
-    #                     i += 1
-
-    #             else:
-    #                 string += f"{''.join([' ']*15*self.th)}{self.th} {frame}\n"
-
-
-    #         return string
-    #     # def __repr__(self):
-    #     #     return str(self)
-
-    #         return string
-    #     def append(self, frame):
-    #         self.frames.append(frame)
-    #     def pop(self):
-    #         self.frames.pop()
-    #     def __len__(self):
-    #         return len(self.frames)
-
-
     def generate_report(self):
         lines = read_file(self.QAWA_OUT)
         threads_nums = get_threads_nums(lines)
         paths = self.prepare_paths(lines, threads_nums)
         flows = self.prepare_flows(paths)
-        short_flows = self.roll_up_flows(flows)
-        self.save_flows(lines, len(paths))
-        self.save_flows(lines, len(paths), rollup=True)
+        #short_flows = self.roll_up_flows(flows)
+        self.save_flows(lines, paths)
+        #self.save_flows(lines, paths, rollup=True)
 
 
     def roll_up_flows(self, flows):
@@ -133,53 +77,10 @@ class Flow_generator():
                     running_tab = running_tab.replace(tab, '', 1)
         return flows
 
-
-    # def show_stack(self, lines):
-    #     parallel = False
-    #     sub_stacks = []
-    #     stack = self.Stack()
-    #     for line in lines:
-
-    #         if self.is_enter(line):
-    #             dire, file, name, typ, thread, max_threads = self.unpack_enter_line(line)
-    #         if self.is_exit(line):
-    #             dire, file, name, typ, thread, max_threads, stime, ctime, wtime = self.unpack_exit_line(line)   
-
-    #         if max_threads > 1 and parallel == False:
-    #             for i in range(max_threads):
-    #                 sub_stacks.append(self.Stack(i))
-    #             stack.append(sub_stacks)
-    #             parallel = True
-
-    #         if max_threads == 1 and parallel == True:
-    #             sub_stacks = []
-    #             stack.pop()
-    #             parallel = False
-
-
-    #         if parallel == False:
-    #             if self.is_enter(line):
-    #                 proc = self.Procedure(file,name,typ)
-    #                 stack.append(proc)
-    #             if self.is_exit(line):
-
-    #                 stack.pop()
-
-    #         if parallel == True:
-    #             if self.is_enter(line):
-    #                 proc = self.Procedure(file,name,typ)
-    #                 sub_stacks[thread-1].append(proc)
-    #             if self.is_exit(line):
-    #                 sub_stacks[thread-1].pop()
-
-
-    #         print(''.join(['-']*200))
-    #         print(stack)
-
     def prepare_paths(self, lines, threads_nums):
-        paths = []
+        paths = {}
         for th in threads_nums:
-            paths.append([])
+            paths[th] = []
 
         for line in lines:
             if is_enter(line):
@@ -187,17 +88,17 @@ class Flow_generator():
             if is_exit(line):
                 dire, file, name, typ, thread, max_threads, stime, ctime, wtime = unpack_exit_line(line)
 
-            if thread == 1 and max_threads == 1:
-                for path in paths:
+            if thread == '1-0' and max_threads == 1:
+                for no, path in paths.items():
                     path.append(line)
             else:
-                paths[thread-1].append(line)
+                paths[thread].append(line)
 
         return paths
 
 
 
-    def save_flows(self, lines, paths_num, rollup=False):
+    def save_flows(self, lines, paths, rollup=False):
         file_flow = f"{self.QAWA_OUT}.flow"
         if rollup:
             file_flow += '_short'
@@ -206,12 +107,14 @@ class Flow_generator():
         new_lines = []
         i = 0
         tab = '.   '
-        running_tabs = ['#1 '] * paths_num
+        running_tabs = {}
+        for no, path in paths.items():
+            running_tabs[no] = f"#0-1 "
 
         while i < len(lines):
-            parallel_flows = []
-            for th in range(paths_num):
-                parallel_flows.append([])
+            parallel_flows = {}
+            for no, path in paths.items():
+                parallel_flows[no] = []
 
             line = lines[i].rstrip()
             dire, file, name, typ, thread, max_threads, stime, ctime, wtime = unpack_line(line)
@@ -220,26 +123,26 @@ class Flow_generator():
             # ----------------------------------------------------------------------
             if max_threads == 1:
                 if dire == '->':
-                    new_lines.append(f"{running_tabs[0]}{name}")
-                    running_tabs[0] += tab
+                    new_lines.append(f"{running_tabs['0-1']}{name}")
+                    running_tabs['0-1'] += tab
                 if dire == '<-':
-                    running_tabs[0] = running_tabs[0].replace(tab, '', 1)
+                    running_tabs['0-1'] = running_tabs['0-1'].replace(tab, '', 1)
             # PARALLEL
             # ----------------------------------------------------------------------
             else:
                 threads = max_threads
 
-                for r in range(0, len(running_tabs)):
-                    running_tabs[r] = f"#{str(r+1)}{running_tabs[0][2:]}"
+                for r, tab in running_tabs.items():
+                    running_tabs[r] = f"#{r}{running_tabs['0-1'][len(r)+1:]}"
 
                 while max_threads > 1:
-                    string = f"{running_tabs[thread-1]}{name}"
+                    string = f"{running_tabs[thread]}{name}"
                     if dire == '->':
-                        string = f"{running_tabs[thread-1]}{name}"
-                        parallel_flows[thread-1].append(string)
-                        running_tabs[thread-1] += tab
+                        string = f"{running_tabs[thread]}{name}"
+                        parallel_flows[thread].append(string)
+                        running_tabs[thread] += tab
                     if dire == '<-':
-                        running_tabs[thread-1] = running_tabs[thread-1].replace(tab, '', 1)
+                        running_tabs[thread] = running_tabs[thread].replace(tab, '', 1)
 
                     i += 1
                     line = lines[i].rstrip()
@@ -255,7 +158,7 @@ class Flow_generator():
                 lines_num = len(max(parallel_flows, key=len))
                 for j in range(lines_num):
                     new_line = False
-                    for flow in parallel_flows:
+                    for no, flow in parallel_flows.items():
                         if j < len(flow):
                             if not new_line:
                                 new_lines.append('')

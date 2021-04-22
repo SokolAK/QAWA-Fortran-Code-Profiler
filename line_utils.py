@@ -1,3 +1,9 @@
+def get_declaration_key_words():
+    return ['program','use','include','data','implicit','external', \
+            'character','real','double','integer','dimension','logical', \
+            'complex','parameter','type','common']
+
+
 def is_enter(line):
     return line.startswith('->')
 
@@ -17,12 +23,12 @@ def unpack_line(line):
 
 def unpack_enter_line(line):
     dire, file, name, typ, thread, max_threads = line.split()
-    return dire, file, name, typ, int(thread), int(max_threads)
+    return dire, file, name, typ, thread, int(max_threads)
 
 
 def unpack_exit_line(line):
     dire, file, name, typ, thread, max_threads, stime, ctime, wtime = line.split()
-    return dire, file, name, typ, int(thread), int(max_threads), float(stime), float(ctime), float(wtime)
+    return dire, file, name, typ, thread, int(max_threads), float(stime), float(ctime), float(wtime)
 
 
 def get_procedure_name_from_line(line):
