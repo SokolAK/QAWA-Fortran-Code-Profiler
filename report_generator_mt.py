@@ -5,7 +5,7 @@ from utils import get_separator, read_file, save_file, get_substring_symbol
 import datetime
 
 #Column widths
-cw = [24,20,4,6, 14,14,10, 14,14,10]
+cw = [11, 11, 6, 11, 11, 6, 5, 7]
 
 class Report_generator():
     def __init__(self, QAWA_OUT):
@@ -406,7 +406,6 @@ class Report_generator():
             f.write(f"* W-TIME = wall time, C-TIME = CPU time\n")
             f.write(f"* All times expressed in seconds\n")
             f.write(f"{''.join(['-']*len(details))}\n\n")
-            cw = [11, 11, 6, 11, 11, 6, 5, 7]
             #f.write(f"{'':>12s} {'V  DESC.  V':>12s}\n")
 
             if rollup:

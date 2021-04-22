@@ -3,7 +3,7 @@ from subroutine_wrapper import Subroutine_wrapper
 from function_wrapper import Function_wrapper
 from main_wrapper import Main_wrapper
 import report_generator
-import report_generator_mt
+import flow_generator, chain_generator
 from strings import get_banner
 from utils import *
 from shutil import copy
@@ -121,8 +121,11 @@ def report_mt():
     if len(sys.argv) < 3:
         wrong_usage()
     print("[QAWA] Generating reports...")
-    rg = report_generator_mt.Report_generator(sys.argv[2])
-    rg.generate_report()
+
+    fg = flow_generator.Flow_generator(sys.argv[2])
+    fg.generate_report()
+    cg = chain_generator.Chain_generator(sys.argv[2])
+    cg.generate_report()
 
 
 def test():
