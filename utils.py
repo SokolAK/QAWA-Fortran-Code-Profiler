@@ -1,44 +1,7 @@
 import os
 from shutil import copy
 from strings import get_prefix
-
-
-def get_declaration_key_words():
-    return ['program','use','include','data','implicit','external', \
-            'character','real','double','integer','dimension','logical', \
-            'complex','parameter','type','common']
-
-
-def is_broken_line(lines, i):
-    return lines[i].rstrip().endswith('&') or lines[i+1].lstrip().startswith('&') or lines[i+1].lstrip().startswith('$')
-
-def is_comment(file, line):
-    if not line.strip():
-        return True
-
-    if file.strip().endswith('.f'):
-        first_char = line.lower()[0]
-        return first_char == 'c' or first_char == 'd' or first_char == '*' or first_char == '!'
-
-    if file.strip().endswith('.f90'):
-        first_char = line.strip().lower()[0]
-        return first_char == '!'
-
-    return False
-
-
-def is_declaration(file, lines, i):
-    for key_word in get_declaration_key_words():
-        if lines[i].strip().lower().startswith(key_word) or \
-                not lines[i].strip() or \
-                is_comment(file, lines[i]) or \
-                lines[i].strip().startswith('$') or \
-                lines[i].strip().startswith('&') or \
-                lines[i-1].strip().endswith('&'):
-
-            return True
-    return False
-
+from line_utils import is_comment, get_procedure_name_from_line
 
 def convert_text_block_from_f77_to_f90(text_block):
     text_lines = [line.lstrip() for line in text_block.split('\n')]
@@ -91,12 +54,14 @@ def prepare_file(filename):
 def get_separator(symbol, length):
     return ''.join([symbol]*length)
 
+
 def any_in(key_words, line):
     line = line.strip().lower()
     for key_word in key_words:
         if key_word in line:
             return True
     return False
+
 
 def prepare_file_list(SOURCE_DIR, FILES):
     files = []
@@ -109,21 +74,6 @@ def prepare_file_list(SOURCE_DIR, FILES):
     #print(f"FILES: {files}")
     return files
 
-def get_procedure_name_from_line(line):
-    i = 0
-    if 'subroutine' in line.lower():
-        i = line.lower().find('subroutine') + 10
-    if 'function' in line.lower():
-        i = line.lower().find('function') + 8
-    tab = len(line[i:]) - len(line[i:].lstrip())
-    i += tab
-    line = line[i:].rstrip()
-
-    if line.endswith('&'):
-        line = line[:-1].rstrip()
-
-    iE = line.find('(')
-    return line[:iE] if iE > 0 else line
     
 def is_f90_format(file):
     return file.lower().rstrip().endswith('.f90')
@@ -142,6 +92,13 @@ def read_file(filename):
         lines = f.readlines()
     return lines
 
+def get_threads_nums(lines):
+    threads_nums = set()
+    for line in lines:
+        threads_nums.add(int(line.split()[4]))
+    threads_nums = sorted(threads_nums)
+    return threads_nums
+
 
 def get_substring_symbol(string, symbol, order, dire):
     i = 0
@@ -159,7 +116,6 @@ def get_substring_symbol(string, symbol, order, dire):
         return string[i+1:].lstrip()
 
     return ''
-
 
 
 def generate_wrap_report(SCRIPT_DIR, SOURCE_DIR, SUBROUTINES_FILES, FUNCTIONS_FILES, SUBROUTINES, FUNCTIONS):
