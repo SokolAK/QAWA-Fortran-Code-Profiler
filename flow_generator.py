@@ -19,15 +19,15 @@ class Flow_generator():
         threads_nums = get_threads_nums(lines)
         paths = self.prepare_paths(lines, threads_nums)
         flows = self.prepare_flows(paths)
-        #short_flows = self.roll_up_flows(flows)
+        short_flows = self.roll_up_flows(flows)
         self.save_flows(lines, paths)
-        #self.save_flows(lines, paths, rollup=True)
+        self.save_flows(lines, paths, rollup=True)
 
 
     def roll_up_flows(self, flows):
-        short_flows = []
-        for num, flow in enumerate(flows):
-            short_flows.append(self.roll_up_flow(flow))
+        short_flows = {}
+        for no, flow in flows.items():
+            short_flows[no] = self.roll_up_flow(flow)
         return short_flows
 
 
@@ -60,18 +60,17 @@ class Flow_generator():
         return flow
 
     def prepare_flows(self, paths):
-        flows = []
-        for th in range(len(paths)):
-            flows.append([])
+        flows = {}
         tab = '.   '
         running_tab = ''
 
-        for i,path in enumerate(paths):
+        for no,path in paths.items():
+            flows[no] = []
             for line in path:
                 line = line.lstrip()
                 if line.startswith('->'):
                     dire, file, name, typ, thread, max_threads = unpack_enter_line(line)
-                    flows[i].append(f"{running_tab}{name}({thread})\n")
+                    flows[no].append(f"{running_tab}{name}({thread})\n")
                     running_tab += tab
                 if line.startswith('<-'):
                     running_tab = running_tab.replace(tab, '', 1)
@@ -88,7 +87,7 @@ class Flow_generator():
             if is_exit(line):
                 dire, file, name, typ, thread, max_threads, stime, ctime, wtime = unpack_exit_line(line)
 
-            if thread == '1-0' and max_threads == 1:
+            if thread == '0-1' and max_threads == 1:
                 for no, path in paths.items():
                     path.append(line)
             else:
@@ -107,8 +106,8 @@ class Flow_generator():
         tab = '.   '
 
         running_tabs = {}
-        for no, path in paths.items():
-            running_tabs[no] = f"#0-1 "
+        #for no, path in paths.items():
+        running_tabs['0-1'] = f"#0-1 "
 
         while i < len(lines):
             parallel_flows = {}
@@ -132,10 +131,13 @@ class Flow_generator():
             else:
                 threads = max_threads
 
-                for r, tab in running_tabs.items():
-                    running_tabs[r] = f"#{r}{running_tabs['0-1'][len(r)+1:]}"
+                #for r, tab in running_tabs.items():
+                #    running_tabs[r] = f"#{r}{running_tabs['0-1'][len(r)+1:]}"
 
                 while max_threads > 1:
+                    if not thread in running_tabs:
+                        running_tabs[thread] = f"#{thread}{running_tabs['0-1'][4:]}"
+
                     string = f"{running_tabs[thread]}{name}"
                     if dire == '->':
                         string = f"{running_tabs[thread]}{name}"

@@ -39,7 +39,7 @@ class Main_wrapper():
             line = lines[j].lstrip().lower()
             #if line.startswith('stop') or line.startswith('end'):
             if line.startswith('stop') or line.startswith('end program') or \
-                    (line.startswith('end') and last_line):
+                    (line.strip() == 'end' and last_line):
                 lines.insert(j, self.get_after_fragment())
 
             if not is_comment(self.MAIN_FILE, line):
