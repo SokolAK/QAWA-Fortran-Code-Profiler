@@ -140,13 +140,12 @@ class Chain_generator():
         return i
 
     def prepare_chains(self, lines, paths_num):
-        file_chains = f"{self.QAWA_OUT}.chains"
-        file_chains_rev = f"{self.QAWA_OUT}.chains_rev"
+        #file_chains = f"{self.QAWA_OUT}.chains"
+        #file_chains_rev = f"{self.QAWA_OUT}.chains_rev"
         print(f"Preparing chains...")
 
         chains = {}
         stack = []
-
 
         i = 0
         while i < len(lines):
@@ -194,6 +193,7 @@ class Chain_generator():
             file += '-roll'
         if reverse:
             file += '-rev'
+        file += '.md'
         with open(file, 'w') as f:
             #f.write(f"{''.join(['-']*(11 + 2 + 11 + 2 + 9 + 2 + 6 + 2 + max_chain_length))}\n")
             chains = dict(sorted(chains.items(), key=lambda item: item[1][sort_key], reverse=True))
@@ -202,25 +202,27 @@ class Chain_generator():
             max_procedure_length = max([len(get_substring_symbol(chain,'->','last','right')) for chain in chains.keys()])
             max_chain_length = max([len(get_substring_symbol(chain,'#','first','right')) for chain in chains.keys()])
 
-            details = f"QAWA CHAINS REPORT (Rollup: {rollup}, Reverse: {reverse}, Sort key: {sort_key})"
-            f.write(f"{details}\n")
-            f.write(f"File: {file}\n")
-            f.write(f"Date: {datetime.datetime.now().strftime('%d.%m.%Y %H:%M:%S')}\n")
+            title = f"QAWA CHAINS REPORT"
+            details = f"Details: rollup={rollup}, reverse={reverse}, sortKey={sort_key}"
+            f.write(f"# {title}\n")
+            f.write(f"#### {details}\n")
+            f.write(f"#### File: {file}\n")
+            f.write(f"#### Date: {datetime.datetime.now().strftime('%d.%m.%Y %H:%M:%S')}\n")
             f.write(f"{''.join(['-']*len(details))}\n")
             f.write(f"* W-TIME = wall time, C-TIME = CPU time\n")
             f.write(f"* All times expressed in seconds\n")
             f.write(f"{''.join(['-']*len(details))}\n\n")
             #f.write(f"{'':>12s} {'V  DESC.  V':>12s}\n")
 
-            if rollup:
-                preheader = f"{'MAX':>{cw[0]}s} | {'TOTAL':>{cw[1]}s} | {'':{cw[2]}s}" + \
-                        f" | {'MAX':>{cw[3]}s} | {'TOTAL':>{cw[4]}s} | {'':{cw[5]}s}" + \
-                        f" | {'TOTAL':>{cw[6]}s} | {'MAX':>{cw[7]}s} | {''}"
-                if reverse:
-                    preheader += f"{''.join([' ']*max_procedure_length)} |"
-                f.write(f"{preheader}\n") 
+            # if rollup:
+            #     preheader = f"| {'MAX':>{cw[0]}s} | {'TOTAL':>{cw[1]}s} | {'':{cw[2]}s}" + \
+            #             f" | {'MAX':>{cw[3]}s} | {'TOTAL':>{cw[4]}s} | {'':{cw[5]}s}" + \
+            #             f" | {'TOTAL':>{cw[6]}s} | {'MAX':>{cw[7]}s} | {''}"
+            #     if reverse:
+            #         preheader += f"{''.join([' ']*max_procedure_length)} |"
+            #     f.write(f"{preheader}\n") 
 
-            header = f"{'W-TIME':>{cw[0]}s} | {'C-TIME':>{cw[1]}s} | {'C/W':>{cw[2]}s}" + \
+            header = f"| {'W-TIME':>{cw[0]}s} | {'C-TIME':>{cw[1]}s} | {'C/W':>{cw[2]}s}" + \
                     f" | {'SELF W-TIME':>{cw[3]}s} | {'SELF C-TIME':>{cw[4]}s} | {'C/W':>{cw[5]}s}" + \
                     f" | {'CALLS':>{cw[6]}s} | {'THREADS':>{cw[7]}s}" 
 
@@ -230,12 +232,12 @@ class Chain_generator():
                 header += f" | {'CHAIN'}\n"
             f.write(header)  
 
-            line = ''
+            line = '| '
             for c in cw:
-                line += f"{''.join(['-']*(c+1))}+-"
+                line += f"{''.join(['-']*(c))}:|-"
 
             if reverse:
-                line += f"{''.join(['-']*(max_procedure_length+1))}+-" 
+                line += f"{''.join(['-']*(max_procedure_length+1))}|:" 
                 line += f"{''.join(['-']*(max_chain_length - max_procedure_length + 1))}\n" 
 
             else:
@@ -259,10 +261,12 @@ class Chain_generator():
                         chain_body = f"{chain_body.rstrip():{max_procedure_length}s} |"
 
                 threads = f"{details['thread']}/{details['max_threads']}"
+                chain_body = chain_body.replace('<-', '←')
+                chain_body = chain_body.replace('->', '→')
 
                 ct_wt = details['ctime'] / details['wtime'] if details['wtime'] > 0 else 1
                 self_ct_wt = details['self_ctime'] / details['self_wtime'] if details['self_wtime'] > 0 else 1
-                f.write(f"{details['wtime']:{cw[0]}.4f} | {details['ctime']:{cw[1]}.4f} | {ct_wt:{cw[2]}.2f}")
-                f.write(f" | {details['self_wtime']:{cw[3]}.4f} | {details['self_ctime']:{cw[4]}.4f} | {self_ct_wt:{cw[5]}.2f}")
-                f.write(f" | {details['calls']:{cw[6]}d}") 
+                f.write(f"| {details['wtime']:>{cw[0]}.4f} | {details['ctime']:>{cw[1]}.4f} | {ct_wt:>{cw[2]}.2f}")
+                f.write(f" | {details['self_wtime']:>{cw[3]}.4f} | {details['self_ctime']:>{cw[4]}.4f} | {self_ct_wt:>{cw[5]}.2f}")
+                f.write(f" | {details['calls']:>{cw[6]}d}") 
                 f.write(f" | {threads:>{cw[7]}s} | {chain_body}\n")

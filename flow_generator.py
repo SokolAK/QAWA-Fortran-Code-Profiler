@@ -202,6 +202,7 @@ class Flow_generator():
         if rollup:
             file_flow += '_short'
         print(f"Preparing {file_flow}...")
+        file_flow += '.md'
 
         new_lines = []
         i = 0
@@ -281,8 +282,14 @@ class Flow_generator():
         #    f.write(f"{file_flow}\n")
         #    f.write(f"{''.join(['-']*len(file_flow))}\n\n")
 
-        details = f"QAWA FLOW REPORT (Rollup: {rollup})"    
-        header = f"{details}\nFile: {file_flow}\nDate: {datetime.datetime.now().strftime('%d.%m.%Y %H:%M:%S')}\n"
+        title = f"QAWA CHAINS REPORT"
+        details = f"Details: rollup={rollup}"
+        header = (f"# {title}\n")
+        header += f"#### {details}\n"
+        header += f"#### File: {file_flow}\n"
+        header += f"#### Date: {datetime.datetime.now().strftime('%d.%m.%Y %H:%M:%S')}\n"
         header += f"{''.join(['-']*len(details))}\n\n"
+        new_lines.insert(0, '```\n')
+        new_lines.append('```')
 
         save_file(file_flow,new_lines,header,mode='w') 
