@@ -17,7 +17,7 @@ class Chain_generator():
     def generate_report(self):
         lines = read_file(self.QAWA_OUT)
         threads_nums = get_threads_nums(lines)
-        paths = self.prepare_paths(lines, threads_nums)
+        paths = prepare_paths(lines, max(threads_nums))
         chains = self.prepare_chains(lines, len(paths))
         self.save_chains(f"{self.QAWA_OUT}.chains", chains, sort_key='self_wtime', reverse=False)
         self.save_chains(f"{self.QAWA_OUT}.chains", chains, sort_key='self_wtime', reverse=True)
@@ -27,25 +27,6 @@ class Chain_generator():
         self.save_chains(f"{self.QAWA_OUT}.chains", rolled_chains, sort_key='self_wtime', rollup=True, reverse=True)
         self.save_chains(f"{self.QAWA_OUT}.chains", rolled_chains, sort_key='wtime', rollup=True, reverse=True)
 
-
-    def prepare_paths(self, lines, threads_nums):
-        paths = []
-        for th in threads_nums:
-            paths.append([])
-
-        for line in lines:
-            if is_enter(line):
-                dire, file, name, typ, thread, max_threads = unpack_enter_line(line)
-            if is_exit(line):
-                dire, file, name, typ, thread, max_threads, stime, ctime, wtime = unpack_exit_line(line)
-
-            if thread == 1 and max_threads == 1:
-                for path in paths:
-                    path.append(line)
-            else:
-                paths[thread-1].append(line)
-
-        return paths
 
     def process_chains_sequential(self, stack, chains, line):
         dire, file, name, typ, thread, max_threads, stime, ctime, wtime = unpack_line(line)

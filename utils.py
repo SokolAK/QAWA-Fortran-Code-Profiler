@@ -1,7 +1,8 @@
 import os
 from shutil import copy
 from strings import get_prefix
-from line_utils import is_comment, get_procedure_name_from_line
+from line_utils import is_comment, get_procedure_name_from_line, \
+                is_enter, is_exit, unpack_enter_line, unpack_exit_line
 
 def convert_text_block_from_f77_to_f90(text_block):
     text_lines = [line.lstrip() for line in text_block.split('\n')]
@@ -188,4 +189,24 @@ def generate_wrap_report(SCRIPT_DIR, SOURCE_DIR, SUBROUTINES_FILES, \
             error = 'error'
 
         f.write(f"{MAIN_FILE.split('/')[-1]:30s}{'MAIN':30s}{'M':10s}{wrapped:20s}{error:20s}\n")
-        
+
+
+def prepare_paths(lines, max_thds):
+    paths = []
+    for i in range(max_thds):
+        paths.append([])
+
+    for line in lines:
+        if is_enter(line):
+            dire, file, name, typ, thread, max_threads = unpack_enter_line(line)
+        if is_exit(line):
+            dire, file, name, typ, thread, max_threads, stime, ctime, wtime = unpack_exit_line(line)
+
+        if thread == 1 and max_threads == 1:
+            for path in paths:
+                path.append(line)
+        else:
+            paths[thread-1].append(line)
+
+    return paths
+    
