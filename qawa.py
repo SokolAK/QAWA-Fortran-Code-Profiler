@@ -2,8 +2,10 @@ import sys, os
 from subroutine_wrapper import Subroutine_wrapper
 from function_wrapper import Function_wrapper
 from main_wrapper import Main_wrapper
-import report_generator
-import flow_generator, chain_generator
+from report_generator import * 
+from flow_generator import * 
+from chain_generator import *
+from comparison_generator import *
 from strings import get_banner
 from utils import *
 from shutil import copy
@@ -20,13 +22,13 @@ def help():
     print(f"Usage: run shell script './qawa <command>' or python script 'python qawa.py <command>'")
     print()
     print(f"List of commands:")
-    print(f"wrap <config.py> -o [file] ... Add profiling wrappers to files listed in <config.py>.")
+    print(f"wrap <config.py> -o [file] ___ Add profiling wrappers to files listed in <config.py>.")
     print(f"                               Profiling data will be saved to [file].out file located in <QAWA_DIR>/outs/.")
     print(f"                               If no [out] is passed, the output filename is set to 'qawa.out'.")
-    print(f"unwrap <config.py> ........... Restore the original version of the source files listed in <config.py>")
+    print(f"unwrap <config.py> ___________ Restore the original version of the source files listed in <config.py>")
     print(f"                               from before the wrapping process.")
-    print(f"report <out> ................. Generate reports based on the given <out> file.")
-    #print(f"report_mt <out> .............. Generate thread-aware reports based on the given <out> file. Experimental.")
+    print(f"report <out> _________________ Generate reports based on the given <out> file.")
+    print(f"compare <out1> <out2> ... ____ Generate reports and compare reports for the given out files.")
     print()
 
 
@@ -114,19 +116,30 @@ def report():
     if len(sys.argv) < 3:
         wrong_usage()
     print("[QAWA] Generating reports...")
-    rg = report_generator.Report_generator(sys.argv[2])
-    rg.generate_report()
+    Report_generator(sys.argv[2]).generate_report()
 
 
-def report_mt():
+def report_mt(filename=''):
+
+    if not filename:
+        if len(sys.argv) < 3:
+            wrong_usage()
+        print("[QAWA] Generating reports...")
+        filename = sys.argv[2]
+
+    Flow_generator(filename).generate_report()
+    Chain_generator(filename).generate_report()
+
+
+def compare():
     if len(sys.argv) < 3:
         wrong_usage()
     print("[QAWA] Generating reports...")
+    
+    for filename in sys.argv[2:]:
+        report_mt(filename)
 
-    fg = flow_generator.Flow_generator(sys.argv[2])
-    fg.generate_report()
-    cg = chain_generator.Chain_generator(sys.argv[2])
-    cg.generate_report()
+    Comparison_generator(sys.argv[2:]).generate_report()
 
 
 def test():
@@ -144,6 +157,7 @@ commands = {
     'unwrap': unwrap,
     'report': report_mt,
     'report_old': report,
+    'compare': compare,
     'test': test,
 }
 command = sys.argv[1]

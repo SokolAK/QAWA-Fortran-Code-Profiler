@@ -88,12 +88,13 @@ Do not pass any `<command>` to display `help`.
 Usage: run shell script './qawa <command>' or python script 'python qawa.py <command>'
 
 List of commands:
-wrap <config.py> -o [out] .... Add profiling wrappers to files listed in <config.py>.
+wrap <config.py> -o [out] ____ Add profiling wrappers to files listed in <config.py>.
                                Profiling data will be saved to [out] file located in <QAWA_DIR>/outs/.
                                If no [out] is passed, the output filename is set to 'qawa.out'.
-unwrap <config.py> ........... Restore the original version of the source files listed in <config.py>
+unwrap <config.py> ___________ Restore the original version of the source files listed in <config.py>
                                from before the wrapping process.
-report <out> ................. Generate reports based on the given <out> file.
+report <out> _________________ Generate reports based on the given <out> file.
+compare <out1> <out2> ... ____ Generate reports and compare reports for the given out files.
 ```
 
 ## ♻️ Typical workflow
