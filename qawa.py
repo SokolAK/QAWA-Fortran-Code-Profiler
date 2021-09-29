@@ -10,25 +10,59 @@ from strings import get_banner
 from utils import *
 from shutil import copy
 from test_wrappers import Test_wrappers
-print(get_banner())
 
 SCRIPT_DIR = os.path.dirname(os.path.realpath(__file__))+'/'
 SOURCE_DIR = MAIN_FILE = ''
 SUBROUTINES_FILES = SUBROUTINES = FUNCTIONS_FILES = FUNCTIONS = []
+COLORS = {
+    'violet': '\033[95m',
+    'blue': '\033[94m',
+    'cyan': '\033[96m',
+    'green': '\033[92m',
+    'yellow': '\033[93m',
+    'red': '\033[91m',
+    'normal': '\033[0m',
+    'bold': '\033[1m',
+    'underline': '\033[4m'
+}
+
+def violet(text):
+    return f"{COLORS['violet']}{text}{COLORS['normal']}"
+def cyan(text):
+    return f"{COLORS['cyan']}{text}{COLORS['normal']}"
+def yellow(text):
+    return f"{COLORS['yellow']}{text}{COLORS['normal']}"
+def red(text):
+    return f"{COLORS['red']}{text}{COLORS['normal']}"
+def green(text):
+    return f"{COLORS['green']}{text}{COLORS['normal']}"
+def bold(text):
+    return f"{COLORS['bold']}{text}{COLORS['normal']}"
+def underline(text):
+    return f"{COLORS['underline']}{text}{COLORS['normal']}"
 
 def help():
-    print("[QAWA] Help")
+    print(f"{bold('[QAWA FCP] Help')}")
     print()
-    print(f"Usage: run shell script './qawa <command>' or python script 'python qawa.py <command>'")
+    print(f"{bold('Usage:')} run shell script {cyan('./qawa <command>')} or python script python {cyan('qawa.py <command>')}")
+    print(f"{bold('Examples:')} {cyan('./qawa wrap filename1.py -o filename2')} or {cyan('python qawa.py unwrap filename1.py')}")
     print()
-    print(f"List of commands:")
-    print(f"wrap <config.py> -o [file] ___ Add profiling wrappers to files listed in <config.py>.")
-    print(f"                               Profiling data will be saved to [file].out file located in <QAWA_DIR>/outs/.")
-    print(f"                               If no [out] is passed, the output filename is set to 'qawa.out'.")
-    print(f"unwrap <config.py> ___________ Restore the original version of the source files listed in <config.py>")
-    print(f"                               from before the wrapping process.")
-    print(f"report <out> _________________ Generate reports based on the given <out> file.")
-    print(f"compare <out1> <out2> ... ____ Generate reports and compare reports for the given out files.")
+    print(f"{bold(underline('List of commands:'))}")
+    print(f"({red('<value>')} is required, {yellow('-flag [value]')} is optional)")
+    print()
+    
+    print(f"""{cyan('wrap')} {red('<config.py>')} {yellow('-o [file]')}
+    Add TIME profiling wrappers to files listed in <config.py>.")
+    Profiling data will be saved to [file].out file located in <QAWA_DIR>/outs/.")
+    If no [out] is passed, the output filename is set to 'qawa.out'.""")
+
+    print(f"""{cyan('report')} {red('<out>')}
+    Generate TIME reports based on the given <out> file.""")
+    print(f"""{cyan('compare')} {red('<out1> <out2> ...')}
+    Generate TIME reports and compare reports for the given out files.""")
+    print(f"""{cyan('unwrap')} {red('<config.py>')}
+    Restore the original version of the source files listed in <config.py>)
+    from before the wrapping process.""")
     print()
 
 
@@ -148,6 +182,8 @@ def test():
 
 
 ########################################################################
+print(f"{violet(get_banner())}")
+
 if len(sys.argv) < 2:
     wrong_usage()
 

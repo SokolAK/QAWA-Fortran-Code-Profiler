@@ -83,18 +83,25 @@ Do not pass any `<command>` to display `help`.
    F\_/  QAWA Fortran-Code-Profiler
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-[QAWA] Help
+[QAWA FCP] Help
 
-Usage: run shell script './qawa <command>' or python script 'python qawa.py <command>'
+Usage: run shell script ./qawa <command> or python script python qawa.py <command>
+Examples: ./qawa wrap filename1.py -o filename2 or python qawa.py unwrap filename1.py
 
 List of commands:
-wrap <config.py> -o [out] ____ Add profiling wrappers to files listed in <config.py>.
-                               Profiling data will be saved to [out] file located in <QAWA_DIR>/outs/.
-                               If no [out] is passed, the output filename is set to 'qawa.out'.
-unwrap <config.py> ___________ Restore the original version of the source files listed in <config.py>
-                               from before the wrapping process.
-report <out> _________________ Generate reports based on the given <out> file.
-compare <out1> <out2> ... ____ Generate reports and compare reports for the given out files.
+(<value> is required, -flag [value] is optional)
+
+wrap <config.py> -o [file]
+    Add TIME profiling wrappers to files listed in <config.py>.")
+    Profiling data will be saved to [file].out file located in <QAWA_DIR>/outs/.")
+    If no [out] is passed, the output filename is set to 'qawa.out'.
+report <out>
+    Generate TIME reports based on the given <out> file.
+compare <out1> <out2> ...
+    Generate TIME reports and compare reports for the given out files.
+unwrap <config.py>
+    Restore the original version of the source files listed in <config.py>)
+    from before the wrapping process.
 ```
 
 ## ♻️ Typical workflow
