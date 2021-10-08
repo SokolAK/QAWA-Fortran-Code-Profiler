@@ -1,12 +1,13 @@
-from strings import *
+from scripts.strings import *
 import os
 import re
-from utils import *
-from line_utils import *
+from scripts.utils import *
+from scripts.line_utils import *
 import datetime
 
 #Column widths
 cw = [11, 11, 6, 11, 11, 6, 5, 7]
+FILENAME = os.path.basename(__file__)
 
 class Chain_generator():
     def __init__(self, QAWA_OUT):
@@ -123,7 +124,7 @@ class Chain_generator():
     def prepare_chains(self, lines, paths_num):
         #file_chains = f"{self.QAWA_OUT}.chains"
         #file_chains_rev = f"{self.QAWA_OUT}.chains_rev"
-        print(f"Preparing chains...")
+        log(f'Preparing chains', level='detail', source=FILENAME)
 
         chains = {}
         stack = []

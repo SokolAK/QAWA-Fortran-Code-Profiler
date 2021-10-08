@@ -1,0 +1,36 @@
+#!/bin/bash
+#SBATCH -c 8
+#SBATCH --time=01:00:00
+#SBATCH --mem=20G
+#SBATCH --qos=normal
+#SBATCH --nodelist=cn05
+
+EXE=gammcor
+WORKLOAD=SHORT
+
+WRK_PATH=~/QCHEM/GAMMCOR_GitLab
+EXE_PATH=$WRK_PATH/$EXE
+DATA_PATH=~/QCHEM/WORKLOADS/$WORKLOAD/
+OUT_FILE=/home/adam.sokol/QCHEM/PROFILING/QAWA/outs/qawa.out
+
+cwd=$(srun echo $PWD)
+TASK_NAME=$EXE-$WORKLOAD-c$OMP_NUM_THREADS
+TMP_PATH=/tmp/$WORKLOAD/$TASK_NAME
+echo $(date '+%d/%m/%Y %H:%M:%S') Copying data from $DATA_PATH to $TMP_PATH
+mkdir -p $TMP_PATH
+cp $DATA_PATH* $TMP_PATH
+
+SECONDS=0
+echo $(date '+%d/%m/%Y %H:%M:%S') Running $EXE_PATH
+cd $TMP_PATH
+srun $EXE_PATH
+# mpiexec -n 1 $EXE_PATH : -n 1 python /home/adam.sokol/QCHEM/PROFILING/QAWA/mem_monitor.py $EXE $USER $OUT_FILE
+
+duration=$SECONDS 
+printf "Time: %02d:%02d:%02d\n" \
+$(($duration / 3600)) $(($duration % 3600 / 60)) $(($duration % 60))
+
+echo $(date '+%d/%m/%Y %H:%M:%S') Cleaning
+rm -r $TMP_PATH
+
+echo $(date '+%d/%m/%Y %H:%M:%S') Finished

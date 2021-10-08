@@ -1,8 +1,11 @@
 import os
 from shutil import copy
-from strings import get_prefix
-from line_utils import is_comment, get_procedure_name_from_line, \
+from scripts.strings import get_prefix
+from scripts.line_utils import is_comment, get_procedure_name_from_line, \
                 is_enter, is_exit, unpack_enter_line, unpack_exit_line
+from scripts.logger import *
+
+FILENAME = os.path.basename(__file__)
 
 def convert_text_block_from_f77_to_f90(text_block):
     text_lines = [line.lstrip() for line in text_block.split('\n')]
@@ -28,6 +31,7 @@ def make_copy(org_name):
 
 
 def unwrap_file(copy_name):
+    log(f'Restoring {copy_name}', level='detail', source=FILENAME)
     org_name = copy_name.replace('.qawa_copy', '')
     if os.path.isfile(org_name):
         os.remove(org_name)
@@ -40,7 +44,6 @@ def unwrap_dir(SOURCE_DIR):
 	for (dirpath, dirnames, filenames) in os.walk(SOURCE_DIR):
 		files += [os.path.join(dirpath, file).replace(SOURCE_DIR,'') for file in filenames]
 	files = set([file for file in files if '.qawa_copy' in file])
-	print(f"Restoring: {files}")
 	for file_copy in files:
 		unwrap_file(f"{SOURCE_DIR}{file_copy}")
 
@@ -69,10 +72,9 @@ def prepare_file_list(SOURCE_DIR, FILES):
     for (dirpath, dirnames, filenames) in os.walk(SOURCE_DIR):
         files += [os.path.join(dirpath, file).replace(SOURCE_DIR,'') for file in filenames]
     files = set([file for file in files if file.endswith('.f') or file.endswith('.f90')])
-    #files.update([f for f in listdir(SOURCE_DIR) if isfile(join(SOURCE_DIR, f))])
     files = [f for f in files if f in FILES or '*' in FILES]
     files = [f for f in files if f"-{f}" not in FILES]
-    #print(f"FILES: {files}")
+    files = [f"{SOURCE_DIR}{f}" for f in files]
     return files
 
     
@@ -87,15 +89,18 @@ def save_file(file, lines, header=[], mode='w'):
         for line in lines:
             f.write(line)  
 
-def read_file(filename):
+def read_file(filename, strip=True):
     lines = []
     with open(filename, 'r') as f:
         lines = f.readlines()
+    if strip:
+        for i in range(len(lines)):
+            lines[i] = lines[i].strip()
     return lines
 
 def get_threads_nums(lines):
     threads_nums = set()
-    for line in lines:
+    for line in lines:  
         threads_nums.add(int(line.split()[4]))
     threads_nums = sorted(threads_nums)
     return threads_nums

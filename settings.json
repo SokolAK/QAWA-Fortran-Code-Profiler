@@ -1,0 +1,12 @@
+{
+    "history_batch": 1,
+    "excludes": [
+        "srt%add",
+        "AOInts%getTR",
+        "dgetrf",
+        "dgetri",
+        "*"
+    ],
+    "includes": [
+    ]
+}

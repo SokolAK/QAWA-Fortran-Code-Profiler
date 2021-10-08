@@ -1,7 +1,7 @@
 def get_declaration_key_words():
     return ['program','use','include','data','implicit','external', \
             'character','real','double','integer','dimension','logical', \
-            'complex','parameter','type','common']
+            'complex','parameter','type','common', 'class', 'type']
 
 
 def is_enter(line):
@@ -54,17 +54,26 @@ def is_broken_line(lines, i):
 
 def is_comment(file, line):
     if not line.strip():
-        return True
+        return False
+
+    if '!$OMP' in line:
+        return False
 
     if file.strip().endswith('.f'):
         first_char = line.lower()[0]
-        return first_char == 'c' or first_char == 'd' or first_char == '*' or first_char == '!'
+        return first_char in 'cd*!'
 
     if file.strip().endswith('.f90'):
         first_char = line.strip().lower()[0]
         return first_char == '!'
 
     return False
+
+
+def is_incomplete_line(file, lines, i):
+    line = lines[i].rstrip()
+    next_line = lines[i+1].lstrip()
+    return line.endswith('&') or next_line.startswith('&') or next_line.startswith('$')  or next_line.startswith('>') or is_comment(file, next_line)
 
 
 def is_declaration(file, lines, i):

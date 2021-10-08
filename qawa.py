@@ -1,45 +1,18 @@
 import sys, os
-from subroutine_wrapper import Subroutine_wrapper
-from function_wrapper import Function_wrapper
-from main_wrapper import Main_wrapper
-from report_generator import * 
-from flow_generator import * 
-from chain_generator import *
-from comparison_generator import *
-from strings import get_banner
-from utils import *
-from shutil import copy
-from test_wrappers import Test_wrappers
+from scripts.flow_generator import * 
+from scripts.chain_generator import *
+from scripts.comparison_generator import *
+from scripts.strings import get_banner
+from scripts.initializr import prepare_configuration, create_module
+from scripts.logger import *
+import scripts.subroutine_wrapper as subroutine_wrapper
+import scripts.main_wrapper as main_wrapper
 
+
+FILENAME = os.path.basename(__file__)
 SCRIPT_DIR = os.path.dirname(os.path.realpath(__file__))+'/'
 SOURCE_DIR = MAIN_FILE = ''
 SUBROUTINES_FILES = SUBROUTINES = FUNCTIONS_FILES = FUNCTIONS = []
-COLORS = {
-    'violet': '\033[95m',
-    'blue': '\033[94m',
-    'cyan': '\033[96m',
-    'green': '\033[92m',
-    'yellow': '\033[93m',
-    'red': '\033[91m',
-    'normal': '\033[0m',
-    'bold': '\033[1m',
-    'underline': '\033[4m'
-}
-
-def violet(text):
-    return f"{COLORS['violet']}{text}{COLORS['normal']}"
-def cyan(text):
-    return f"{COLORS['cyan']}{text}{COLORS['normal']}"
-def yellow(text):
-    return f"{COLORS['yellow']}{text}{COLORS['normal']}"
-def red(text):
-    return f"{COLORS['red']}{text}{COLORS['normal']}"
-def green(text):
-    return f"{COLORS['green']}{text}{COLORS['normal']}"
-def bold(text):
-    return f"{COLORS['bold']}{text}{COLORS['normal']}"
-def underline(text):
-    return f"{COLORS['underline']}{text}{COLORS['normal']}"
 
 def help():
     print(f"{bold('[QAWA FCP] Help')}")
@@ -82,74 +55,58 @@ def find_flag_value(symbol, default):
         wrong_usage()
 
 
-def prepare_config():
+def wrap():
     if len(sys.argv) < 3:
         wrong_usage()
-    else:
-        if os.path.isfile(sys.argv[2]):
-            config_temp_path = f"{SCRIPT_DIR}/config_temp.py"
-            copy(sys.argv[2], config_temp_path)
-        else:
-            #raise Exception(f"Config file '{sys.argv[2]}' not found!")
-            print(f"Config file '{sys.argv[2]}' not found!")
-            sys.exit()
 
-    import config_temp
-    global SOURCE_DIR, MAIN_FILE, SUBROUTINES_FILES, SUBROUTINES, FUNCTIONS_FILES, FUNCTIONS
-    SOURCE_DIR = config_temp.SOURCE_DIR
-    MAIN_FILE = config_temp.MAIN_FILE
-    SUBROUTINES_FILES = config_temp.SUBROUTINES_FILES
-    SUBROUTINES = config_temp.SUBROUTINES
-    FUNCTIONS_FILES = config_temp.FUNCTIONS_FILES
-    FUNCTIONS = config_temp.FUNCTIONS
-    
-    if os.path.isfile(config_temp_path):
-        os.remove(config_temp_path)
+    CONFIGURATION = prepare_configuration()
+    create_module(CONFIGURATION)
 
+    subroutine_wrapper.run(CONFIGURATION)
+    main_wrapper.run(CONFIGURATION)
 
-def wrap():
     #OUT_FILE = sys.argv[2] if len(sys.argv) > 2 else 'qawa.out'
-    OUT_FILE = find_flag_value('-o', 'qawa.out')
-    unwrap()
+    # OUT_FILE = find_flag_value('-o', 'qawa.out')
+    # unwrap()
 
-    print("[QAWA] Wrapping main...")
-    main_wrapper = Main_wrapper(SCRIPT_DIR, MAIN_FILE, OUT_FILE)
-    main_wrapper.wrap()
+    # print("[QAWA] Wrapping main...")
+    # main_wrapper = Main_wrapper(SCRIPT_DIR, MAIN_FILE, OUT_FILE)
+    # main_wrapper.wrap()
 
-    print("[QAWA] Wrapping subroutines...")
-    sub_wrapper = Subroutine_wrapper(SCRIPT_DIR=SCRIPT_DIR, 
-        SOURCE_DIR=SOURCE_DIR,
-        OUT_FILE=OUT_FILE,
-        FILES=SUBROUTINES_FILES,
-        SUBROUTINES=SUBROUTINES)
-    sub_wrapper.wrap()
+    # print("[QAWA] Wrapping subroutines...")
+    # sub_wrapper = Subroutine_wrapper(SCRIPT_DIR=SCRIPT_DIR, 
+    #     SOURCE_DIR=SOURCE_DIR,
+    #     OUT_FILE=OUT_FILE,
+    #     FILES=SUBROUTINES_FILES,
+    #     SUBROUTINES=SUBROUTINES)
+    # sub_wrapper.wrap()
     
-    print("[QAWA] Wrapping functions...")
-    fun_wrapper = Function_wrapper(SCRIPT_DIR=SCRIPT_DIR, 
-        SOURCE_DIR=SOURCE_DIR,
-        OUT_FILE=OUT_FILE,
-        FILES=FUNCTIONS_FILES,
-        FUNCTIONS=FUNCTIONS)
-    fun_wrapper.wrap()
+    # print("[QAWA] Wrapping functions...")
+    # fun_wrapper = Function_wrapper(SCRIPT_DIR=SCRIPT_DIR, 
+    #     SOURCE_DIR=SOURCE_DIR,
+    #     OUT_FILE=OUT_FILE,
+    #     FILES=FUNCTIONS_FILES,
+    #     FUNCTIONS=FUNCTIONS)
+    # fun_wrapper.wrap()
 
-    print("[QAWA] Generating wrap report...")
-    generate_wrap_report(SCRIPT_DIR, SOURCE_DIR, \
-                         SUBROUTINES_FILES, FUNCTIONS_FILES, \
-                         SUBROUTINES, FUNCTIONS, MAIN_FILE)
+    # print("[QAWA] Generating wrap report...")
+    # generate_wrap_report(SCRIPT_DIR, SOURCE_DIR, \
+    #                      SUBROUTINES_FILES, FUNCTIONS_FILES, \
+    #                      SUBROUTINES, FUNCTIONS, MAIN_FILE)
 
 def unwrap():
-    prepare_config()
+    CONFIGURATION = prepare_configuration()
     if len(sys.argv) < 3:
         wrong_usage()
     else:
-        print("[QAWA] Unwrapping...")
-        unwrap_dir(SOURCE_DIR)
+        log('Unwrapping', level='info', source=FILENAME)
+        unwrap_dir(CONFIGURATION['SOURCE_DIR'])
 
 
 def report():
     if len(sys.argv) < 3:
         wrong_usage()
-    print("[QAWA] Generating reports...")
+    log('Generating reports', level='info', source=FILENAME)
     Report_generator(sys.argv[2]).generate_report()
 
 
@@ -158,7 +115,7 @@ def report_mt(filename=''):
     if not filename:
         if len(sys.argv) < 3:
             wrong_usage()
-        print("[QAWA] Generating reports...")
+        log('Generating reports', level='info', source=FILENAME)
         filename = sys.argv[2]
 
     Flow_generator(filename).generate_report()
@@ -168,7 +125,7 @@ def report_mt(filename=''):
 def compare():
     if len(sys.argv) < 3:
         wrong_usage()
-    print("[QAWA] Generating reports...")
+    log('Generating reports', level='info', source=FILENAME)
     
     for filename in sys.argv[2:]:
         report_mt(filename)
@@ -177,7 +134,7 @@ def compare():
 
 
 def test():
-    print("[QAWA] Testing...")
+    log('Testing', level='info', source=FILENAME)
     os.system('python test_wrappers.py')
 
 
@@ -203,4 +160,4 @@ if not os.path.exists(f"{SCRIPT_DIR}outs"):
     os.makedirs(f"{SCRIPT_DIR}outs")
 
 function()
-print("[QAWA] Done")
+log('Done', level='success', source=FILENAME)

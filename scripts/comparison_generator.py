@@ -1,7 +1,7 @@
-from strings import *
+from scripts.strings import *
 import os
 import re
-from utils import get_separator, read_file, save_file, get_substring_symbol
+from scripts.utils import get_separator, read_file, save_file, get_substring_symbol
 import datetime
 
 wtime = {'sufix': 'chains-wtime-roll-rev.md', 'type':'wtime', 'line0': 11}

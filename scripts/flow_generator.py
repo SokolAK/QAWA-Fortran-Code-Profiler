@@ -1,12 +1,14 @@
-from strings import *
+from scripts.strings import *
 import os
 import re
-from utils import *
-from line_utils import *
+from scripts.utils import *
+from scripts.line_utils import *
 import datetime
+from scripts.logger import log
 
 #Column widths
 cw = [11, 11, 6, 11, 11, 6, 5, 7]
+FILENAME = os.path.basename(__file__)
 
 class Flow_generator():
     def __init__(self, QAWA_OUT):
@@ -83,7 +85,7 @@ class Flow_generator():
         file_flow = f"{self.QAWA_OUT}.flow"
         if rollup:
             file_flow += '_short'
-        print(f"Preparing {file_flow}...")
+        log(f'Preparing {file_flow}', level='detail', source=FILENAME)
         file_flow += '.md'
 
         new_lines = []

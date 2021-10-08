@@ -1,0 +1,16 @@
+echo -e "\033[96m --- Initializing --- \033[0m"
+echo "QAWA_DIR = '$(dirname ${PWD})/'" > qawa_dir
+
+echo -e "\033[96m --- Building ifort libraries --- \033[0m"
+make clean
+make
+cp ../libs/json-fortran/ifort/lib* ../libs/ifort/
+
+echo -e "\033[96m --- Building gfortran libraries --- \033[0m"
+make clean -f Makefile.gcc
+make -f Makefile.gcc
+cp ../libs/json-fortran/gfortran/lib* ../libs/gfortran/
+
+echo -e "\033[96m --- Cleaning --- \033[0m"
+rm -f qawa_dir
+rm -f *.o *.mod

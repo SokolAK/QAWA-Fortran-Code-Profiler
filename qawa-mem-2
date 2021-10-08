@@ -1,0 +1,50 @@
+#!/bin/bash
+#SBATCH --time=72:00:00
+echo Node: $HOSTNAME
+
+WORKLOAD=$1
+NUM_THREADS=$OMP_NUM_THREADS
+
+WRK_PATH=~/QCHEM/GAMMCOR_EXECUTABLES
+EXE_PATH=$WRK_PATH/$3
+DATA_PATH=~/QCHEM/WORKLOADS/$WORKLOAD/
+
+cwd=$(srun echo $PWD)
+TASK_NAME=$3-$1-c$OMP_NUM_THREADS
+TMP_PATH=/tmp/$WORKLOAD/$TASK_NAME
+echo $(date '+%d/%m/%Y %H:%M:%S') Copying data from $DATA_PATH to $TMP_PATH
+mkdir -p $TMP_PATH
+cp $DATA_PATH* $TMP_PATH
+
+average=0
+N=$2
+if [ -z "$N" ]
+  then
+    N=1
+fi
+
+echo $(date '+%d/%m/%Y %H:%M:%S') Starting loop with $N iterations
+for i in $(seq 1 $N)
+do
+    SECONDS=0
+    echo $(date '+%d/%m/%Y %H:%M:%S') Running $EXE_PATH
+    cd $TMP_PATH
+    srun $EXE_PATH > $WRK_PATH/outs/$TASK_NAME.out
+
+    duration=$SECONDS 
+    average=$(($average + $duration))
+    running_average=$((average/$i))
+    printf "Time: %02d:%02d:%02d\n" \
+    $(($duration / 3600)) $(($duration % 3600 / 60)) $(($duration % 60))
+    printf "Running average: %02d:%02d:%02d\n" \
+    $(($running_average / 3600)) $(($running_average % 3600 / 60)) $(($running_average % 60))
+done
+
+average=$((average/$N))
+printf "Average: %02d:%02d:%02d\n" \
+$(($average / 3600)) $(($average % 3600 / 60)) $(($average % 60))
+
+echo $(date '+%d/%m/%Y %H:%M:%S') Cleaning
+# rm -r $TMP_PATH
+
+echo $(date '+%d/%m/%Y %H:%M:%S') Finished
