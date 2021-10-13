@@ -5,6 +5,7 @@ from main_wrapper import Main_wrapper
 from report_generator import * 
 from flow_generator import * 
 from chain_generator import *
+from mem_generator import *
 from comparison_generator import *
 from strings import get_banner
 from utils import *
@@ -163,6 +164,7 @@ def report_mt(filename=''):
 
     Flow_generator(filename).generate_report()
     Chain_generator(filename).generate_report()
+    Mem_generator(f"{filename[:-4]}-mem.out").generate_report()
 
 
 def compare():
