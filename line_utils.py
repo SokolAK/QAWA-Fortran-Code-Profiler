@@ -1,7 +1,7 @@
 def get_declaration_key_words():
     return ['program','use','include','data','implicit','external', \
             'character','real','double','integer','dimension','logical', \
-            'complex','parameter','type','common']
+            'complex','parameter','type','common', 'class']
 
 
 def is_enter(line):

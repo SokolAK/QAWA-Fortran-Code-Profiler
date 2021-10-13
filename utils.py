@@ -72,7 +72,7 @@ def prepare_file_list(SOURCE_DIR, FILES):
     #files.update([f for f in listdir(SOURCE_DIR) if isfile(join(SOURCE_DIR, f))])
     files = [f for f in files if f in FILES or '*' in FILES]
     files = [f for f in files if f"-{f}" not in FILES]
-    #print(f"FILES: {files}")
+    print(f"FILES: {files}")
     return files
 
     

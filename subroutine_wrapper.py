@@ -92,7 +92,8 @@ class Subroutine_wrapper():
             (get_procedure_name_from_line(line) in self.SUBROUTINES or \
                 ('*' in self.SUBROUTINES and f"-{get_procedure_name_from_line(line)}" not in self.SUBROUTINES)) and \
             not self.is_wrapper(lines[i-1]) and \
-            not self.is_wrapped_subroutine(get_procedure_name_from_line(line))
+            not self.is_wrapped_subroutine(get_procedure_name_from_line(line)) and \
+            not self.is_interface(lines, i)
 
 
     def wrap_subroutine(self, lines, subroutine):
@@ -119,7 +120,8 @@ class Subroutine_wrapper():
     def find_subroutine(self, lines, subroutine):
         i = 0
         while not (self.is_subroutine_start(lines[i]) and \
-                subroutine.name == get_procedure_name_from_line(lines[i])):
+                subroutine.name == get_procedure_name_from_line(lines[i])) or \
+                self.is_interface(lines, i):
             i += 1
         return i
 
@@ -134,6 +136,14 @@ class Subroutine_wrapper():
 
     def is_wrapped_subroutine(self, subroutine):
         return subroutine.startswith(get_prefix())
+
+
+    def is_interface(self, lines, i):
+        if i == 1:
+            return False
+        if lines[i-1].strip() == 'interface':
+            return True
+        return False
 
 
     def is_subroutine_on_list(self, subroutine):
@@ -167,12 +177,13 @@ class Subroutine_wrapper():
     def modify_ends(self, lines, subroutines):
         for i, line in enumerate(lines):
             if 'end subroutine' in line.lower():
-                words = line.strip().split()
-                if len(words) == 3:
-                    name = line.strip().split()[2]
-                    for subroutine in subroutines:
-                        if subroutine.name.lower() == name.lower():
-                            lines[i] = line.replace(name, f"{get_prefix()}{name}")
+                if i + 1 >= len(lines) or (i + 1 < len(lines) and not lines[i+1].strip() == 'end interface'):
+                    words = line.strip().split()
+                    if len(words) == 3:
+                        name = line.strip().split()[2]
+                        for subroutine in subroutines:
+                            if subroutine.name.lower() == name.lower():
+                                lines[i] = line.replace(name, f"{get_prefix()}{name}")
 
 
     def prepare_subroutine_wrapper(self, subroutine):
