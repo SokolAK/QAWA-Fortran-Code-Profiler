@@ -27,9 +27,9 @@ class Function_wrapper():
             lines = read_file(f"{self.SOURCE_DIR}/{file}")
             functions = self.find_functions(file, lines)
             for function in functions:
-                print(f"{file:20s}{function.name:20s}", end='', flush=True)
+                # print(f"{file:20s}{function.name:20s}", end='', flush=True)
                 self.wrap_function(file, lines, function)
-                print('wrapped')
+                # print('wrapped')
 
             save_file(f"{self.SOURCE_DIR}/{file}", lines)
 

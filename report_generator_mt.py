@@ -126,6 +126,7 @@ class Report_generator():
                             flow[i0] = f"{flow[i0].rstrip()}x{no}"
         return flow
 
+
     def prepare_flows(self, paths):
         flows = []
         for th in range(len(paths)):
@@ -136,13 +137,14 @@ class Report_generator():
         for i,path in enumerate(paths):
             for line in path:
                 line = line.lstrip()
-                if line.startswith('->'):
+                if self.is_enter(line):
                     dire, file, name, typ, thread, max_threads = self.unpack_enter_line(line)
                     flows[i].append(f"{running_tab}{name}({thread})\n")
                     running_tab += tab
-                if line.startswith('<-'):
+                if self.is_exit(line):
                     running_tab = running_tab.replace(tab, '', 1)
         return flows
+
 
     def show_stack(self, lines):
         parallel = False
@@ -185,9 +187,6 @@ class Report_generator():
 
             print(''.join(['-']*200))
             print(stack)
-
-
-
 
 
     def prepare_paths(self, lines, threads_nums):

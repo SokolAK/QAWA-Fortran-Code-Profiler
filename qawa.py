@@ -1,5 +1,6 @@
 import sys, os
-from subroutine_wrapper import Subroutine_wrapper
+from subroutine_def_wrapper import Subroutine_def_wrapper
+from subroutine_call_wrapper import Subroutine_call_wrapper
 from function_wrapper import Function_wrapper
 from main_wrapper import Main_wrapper
 from report_generator import * 
@@ -15,6 +16,7 @@ from test_wrappers import Test_wrappers
 SCRIPT_DIR = os.path.dirname(os.path.realpath(__file__))+'/'
 SOURCE_DIR = MAIN_FILE = ''
 SUBROUTINES_FILES = SUBROUTINES = FUNCTIONS_FILES = FUNCTIONS = []
+SUBROUTINE_METHOD = ''
 COLORS = {
     'violet': '\033[95m',
     'blue': '\033[94m',
@@ -96,11 +98,12 @@ def prepare_config():
             sys.exit()
 
     import config_temp
-    global SOURCE_DIR, MAIN_FILE, SUBROUTINES_FILES, SUBROUTINES, FUNCTIONS_FILES, FUNCTIONS
+    global SOURCE_DIR, MAIN_FILE, SUBROUTINES_FILES, SUBROUTINES, FUNCTIONS_FILES, FUNCTIONS, SUBROUTINE_METHOD
     SOURCE_DIR = config_temp.SOURCE_DIR
     MAIN_FILE = config_temp.MAIN_FILE
     SUBROUTINES_FILES = config_temp.SUBROUTINES_FILES
     SUBROUTINES = config_temp.SUBROUTINES
+    SUBROUTINE_METHOD = config_temp.SUBROUTINE_WRAPPING_METHOD
     FUNCTIONS_FILES = config_temp.FUNCTIONS_FILES
     FUNCTIONS = config_temp.FUNCTIONS
     
@@ -118,11 +121,18 @@ def wrap():
     main_wrapper.wrap()
 
     print("[QAWA] Wrapping subroutines...")
-    sub_wrapper = Subroutine_wrapper(SCRIPT_DIR=SCRIPT_DIR, 
+    sub_wrapper = Subroutine_def_wrapper(SCRIPT_DIR=SCRIPT_DIR, 
         SOURCE_DIR=SOURCE_DIR,
         OUT_FILE=OUT_FILE,
         FILES=SUBROUTINES_FILES,
         SUBROUTINES=SUBROUTINES)
+    if SUBROUTINE_METHOD == 'call':
+        sub_wrapper = Subroutine_call_wrapper(SCRIPT_DIR=SCRIPT_DIR, 
+            SOURCE_DIR=SOURCE_DIR,
+            OUT_FILE=OUT_FILE,
+            FILES=SUBROUTINES_FILES,
+            SUBROUTINES=SUBROUTINES,
+            MAIN_FILE=MAIN_FILE)
     sub_wrapper.wrap()
     
     print("[QAWA] Wrapping functions...")
@@ -133,10 +143,11 @@ def wrap():
         FUNCTIONS=FUNCTIONS)
     fun_wrapper.wrap()
 
-    print("[QAWA] Generating wrap report...")
-    generate_wrap_report(SCRIPT_DIR, SOURCE_DIR, \
-                         SUBROUTINES_FILES, FUNCTIONS_FILES, \
-                         SUBROUTINES, FUNCTIONS, MAIN_FILE)
+    # print("[QAWA] Generating wrap report...")
+    # generate_wrap_report(SCRIPT_DIR, SOURCE_DIR, \
+    #                      SUBROUTINES_FILES, FUNCTIONS_FILES, \
+    #                      SUBROUTINES, FUNCTIONS, MAIN_FILE,
+    #                      SUBROUTINE_METHOD)
 
 def unwrap():
     prepare_config()
@@ -161,6 +172,9 @@ def report_mt(filename=''):
             wrong_usage()
         print("[QAWA] Generating reports...")
         filename = sys.argv[2]
+
+    if is_new_report_format(filename):
+        covnert_report_to_old_format(filename)
 
     Flow_generator(filename).generate_report()
     Chain_generator(filename).generate_report()

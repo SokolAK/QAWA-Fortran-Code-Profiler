@@ -87,11 +87,16 @@ def save_file(file, lines, header=[], mode='w'):
         for line in lines:
             f.write(line)  
 
-def read_file(filename):
+
+def read_file(filename, strip=False):
     lines = []
     with open(filename, 'r') as f:
         lines = f.readlines()
+    if strip:
+        for i in range(len(lines)):
+            lines[i] = lines[i].strip()
     return lines
+
 
 def get_threads_nums(lines):
     threads_nums = set()
@@ -121,7 +126,7 @@ def get_substring_symbol(string, symbol, order, dire):
 
 def generate_wrap_report(SCRIPT_DIR, SOURCE_DIR, SUBROUTINES_FILES, \
                         FUNCTIONS_FILES, SUBROUTINES, FUNCTIONS, \
-                        MAIN_FILE):
+                        MAIN_FILE, SUBROUTINE_METHOD):
 
     with open(f"{SCRIPT_DIR}outs/qawa_wrap_report", 'w') as f:
 
@@ -209,4 +214,41 @@ def prepare_paths(lines, max_thds):
             paths[thread-1].append(line)
 
     return paths
+
+
+def is_new_report_format(filename):
+    with open(filename, 'r') as f:
+        firstLine = f.readline()
+    return firstLine and is_enter(firstLine) and len(firstLine.split()) == 9
+
+
+def covnert_report_to_old_format(filename):
+    store = {}
+    lines = read_file(filename)
+
+    with open(filename, 'w') as f:
+
+        for line in lines:
+
+            proc_name = f"{line.split()[1]}{line.split()[2]}"
+            wtime = float(line.split()[6])
+            ctime = float(line.split()[7])
+            wtime_q = float(line.split()[8])
+
+            if is_enter(line):
+                store[proc_name] = [wtime,ctime,wtime_q]
+                for i in range(6):
+                    f.write(f"{line.split()[i]} ")
+                f.write("\n")
+
+            if is_exit(line):
+                [wtime0,ctime0,wtime_q0] = store[proc_name]
+                del store[proc_name]
+
+                for i in range(6):
+                    f.write(f"{line.split()[i]} ")
+                f.write(f"{wtime-wtime0} ")
+                f.write(f"{ctime-ctime0} ")
+                f.write(f"{wtime_q-wtime_q0}")
+                f.write("\n")
     

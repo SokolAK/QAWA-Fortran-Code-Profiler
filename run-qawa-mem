@@ -5,8 +5,8 @@
 #SBATCH --qos=normal
 #SBATCH --nodelist=cn04
 
-EXE=gammcor-test
-WORKLOAD=LONG
+EXE=gammcor-test-2
+WORKLOAD=SHORT
 
 WRK_PATH=~/QCHEM/GAMMCOR_EXECUTABLES
 EXE_PATH=$WRK_PATH/$EXE

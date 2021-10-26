@@ -4,7 +4,7 @@ from utils import *
 from line_utils import *
 import re
 
-class Subroutine_wrapper():
+class Subroutine_def_wrapper():
     def __init__(self, SCRIPT_DIR, SOURCE_DIR, OUT_FILE, FILES, SUBROUTINES):
         self.SOURCE_DIR = SOURCE_DIR
         self.SCRIPT_DIR = SCRIPT_DIR
@@ -34,9 +34,9 @@ class Subroutine_wrapper():
 
             subroutines = self.find_subroutines(file, lines)
             for subroutine in subroutines:
-                print(subroutine, end='')
+                # print(subroutine, end='')
                 self.wrap_subroutine(lines, subroutine)
-                print('wrapped')
+                # print('wrapped')
 
             self.modify_ends(lines, subroutines)
 

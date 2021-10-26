@@ -108,14 +108,12 @@ unwrap <config.py>
 ### &nbsp; &nbsp; 📈 Wrapping and profiling your project:
 ```
 qawa wrap (1) ->
--> check wrap report (2) ->
 -> rebuild your project ->
 -> run the executable ->
--> qawa report (3)
+-> qawa report (2)
 ```
 1. Before wrapping QAWA automatically creates a copy of your source files (backup files have the `.qawa_copy` extension).
-2. Wrap report is saved in the `QAWA/outs/qawa_wrap_report` file. It shows which procedures have been actually wrapped. This step is optional.
-3. Run `qawa report` after the executable has finished running.
+2. Run `qawa report` after the executable has finished running.
 
 ### &nbsp; &nbsp; 🔙 Removing QAWA from your project:
 ```
